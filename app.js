@@ -8,22 +8,32 @@ var http = require('http'),
 	var tileNames = ["Gee Joon","Gee Joon","Teen","Teen","Day","Day","Yun","Yun","Gor","Gor","Mooy","Mooy","Chong","Chong","Bon","Bon","Foo","Foo","Ping","Ping","Tit","Tit","Look","Look","Chop Gow","Chop Gow","Chop Bot","Chop Bot","Chop Chit","Chot Chit","Chop Ng","Chop Ng"];
 	var ranks = [1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9,10,10,11,11,12,12,13,13,14,14,15,15,16,16];
 
+	var tables = [];
 	var gameStates = ["pregame","betting","dealing","pair selection","tile reveal","endgame"];
 
 var newDeck = function(){
 	this.tiles = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31];
 }
 
-var newPlayer = function(name,id){
+var newPlayer = function(name,id,socket,minimumBet){
 	this.name = name;
 	this.id = id;
+	this.socket = socket;
+	this.bet = minimumBet;
+	this.wallet = 50;
 }
 
 var newTable = function(){
-	this.players = [];
+	var d = new Date();
+	this.timeOfLastStateChange = d.getTime();
 	this.state = gameStates[0];
 	this.deck = new newDeck();
 	this.seats = [null,null,null,null,null,null,null];
+	this.minimumBet = 5;
+}
+
+var addPlayer = function(table,player){
+	table.seats[table.seats.indexOf(null)] = player; //place player in first available seat
 }
 
 
@@ -45,14 +55,37 @@ app.listen(3000);
 
 io.sockets.on('connection',function(socket){
 
-	socket.emit("connection acknowledgment");
+	var table = new newTable();
+	var player = new newPlayer(socket.id,socket.id,socket,table.minimumBet);
+	addPlayer(table,player);
+	tables.push(table);
+	// console.log(tables);
+
+
+
+	socket.emit("connection acknowledgment",player.wallet,player.bet);
 
 	socket.on('disconnect',function(){
+		console.log("disconnect "+player.name);
+
+		//find the table that player is at, remove him from the seat, and remove that table
+		for(var i = 0; i < tables.length; i++){
+			for(var j = 0; j < tables.length; j++){
+				if(tables[i].seats[j].id == player.id){
+					tables[i].seats[j] = null;
+					tables.splice(i,1);
+					break;
+				}
+			}
+		}
+
 
 	});
 
-	socket.on('bet locked',function(){
-		socket.emit('bet lock confirm');
+	socket.on('bet locked',function(bet){
+		if(player.wallet >= bet){
+			socket.emit('bet lock confirm',bet);
+		}
 	});
 
 	socket.on('bet unlocked',function(){
@@ -60,5 +93,24 @@ io.sockets.on('connection',function(socket){
 	});
 
 });
+
+setInterval(function(){
+	var d = new Date();
+	var time = d.getTime();
+	for(var i = 0; i < tables.length; i++){
+		if(time - tables[i].timeOfLastStateChange > 10000){
+			//this table needs to update
+			var currentState = tables[i].state;
+			tables[i].state = gameStates[(gameStates.indexOf(currentState)+1)%gameStates.length]
+			tables[i].timeOfLastStateChange = time;
+			for(var j = 0; j < tables.length; j++){
+				if(tables[i].seats[j] != null){
+					tables[i].seats[j].socket.emit('game state change',tables[i].state);
+				}
+			}
+		}
+	}
+},1000);
+
 
 

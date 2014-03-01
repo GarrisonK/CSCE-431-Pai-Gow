@@ -13,28 +13,72 @@
 		<script>
 
 			var socket = io.connect();
+			var wallet = 0;
+			var bet = 0;
+			var game = new Object();
+			game['wallet'] = 0;
+			game['bet'] = 0;
+			game['betsLocked'] = false;
+
+			var updateGameInfo = function(){
+				$("#gameInformation").empty();
+	    		$("#gameInformation").html("Current bet: $"+game.bet+"<br>Wallet: $"+game.wallet);
+			}
 
 			$(function(){	//document is ready
-				socket.on('connection acknowledgment',function(){
+				socket.on('connection acknowledgment',function(wallet,bet){
+					game.bet = bet;
+					game.wallet = wallet;
     				$("#messages").prepend("<li>Got a connection from the server</li>");
+    				$("#gameInformation").empty();
+	    			$("#gameInformation").html("Current bet: $"+game.bet+"<br>Wallet: $"+game.wallet);
     			});
-    			socket.on('bet lock confirm',function(){
-    				$("#messages").prepend("<li>Server confirms bet lock.</li>");
-    			})
+    			socket.on('bet lock confirm',function(bet){
+    				$("#messages").prepend("<li>Server confirms bet lock at $"+bet+"</li>");
+    			});
     			socket.on('bet unlock confirm',function(){
     				$("#messages").prepend("<li>Server confirms bet unlock.</li>");
-    			})
+    			});
+    			socket.on('game state change',function(state){
+    				$("#messages").prepend("<li>Game state changed to "+state+"</li>")
+    			});
 
 
 
 				//button click listeners
 				$("#lockBet").click(function(){
-    				socket.emit("bet locked");
+					if(!game.betsLocked){
+    					socket.emit("bet locked",game.bet);
+    					game.betsLocked = true;
+    				}
     			});
 
     			$("#unlockBet").click(function(){
-    				socket.emit("bet unlocked");
+    				if(game.betsLocked){
+    					game.betsLocked = false;
+    					socket.emit("bet unlocked");
+    				}
     			});
+
+    			$("#bet5").click(function(){
+    				if(game.wallet >= game.bet+5){
+    					game.bet = game.bet+5;
+    				}
+    				updateGameInfo();
+    			});
+    			$("#bet10").click(function(){
+    				if(game.wallet >= game.bet+10){
+    					game.bet = game.bet+10;
+    				}
+    				updateGameInfo();
+    			});
+    			$("#bet25").click(function(){
+    				if(game.wallet >= game.bet+25){
+    					game.bet = game.bet+25;
+    				}
+    				updateGameInfo();
+    			});
+
 
 			});
 
@@ -58,6 +102,9 @@
 					</div>
 					<div id="miscButtons">
 						<button id="quit">Quit</button>
+					</div>
+					<div id="gameInformation">
+						
 					</div>
 				</div>
 				<div>
