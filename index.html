@@ -2,12 +2,73 @@
 
 	<head>
 		<script src="/socket.io/socket.io.js"></script>
+		<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js"></script>
+		<link rel="stylesheet" type="text/css" href="style.css">
 	</head>
 
 	<title>Pai Gow</title>
 
 	<body>
-		Pai Gow Game
+
+		<script>
+
+			var socket = io.connect();
+
+			$(function(){	//document is ready
+				socket.on('connection acknowledgment',function(){
+    				$("#messages").prepend("<li>Got a connection from the server</li>");
+    			});
+    			socket.on('bet lock confirm',function(){
+    				$("#messages").prepend("<li>Server confirms bet lock.</li>");
+    			})
+    			socket.on('bet unlock confirm',function(){
+    				$("#messages").prepend("<li>Server confirms bet unlock.</li>");
+    			})
+
+
+
+				//button click listeners
+				$("#lockBet").click(function(){
+    				socket.emit("bet locked");
+    			});
+
+    			$("#unlockBet").click(function(){
+    				socket.emit("bet unlocked");
+    			});
+
+			});
+
+		</script>
+
+		<div id="container">
+			<div id="topbar"></div>
+			<div id="leftbar"></div>
+			<div id="gamewindow">
+				<div id="buttons">
+					<div id="betting Buttons">
+						<button id="bet5">Bet $5</button>
+						<button id="bet10">Bet $10</button>
+						<button id="bet25">Bet $25</button>
+						<button id="lockBet">Lock bet</button>
+						<button id="unlockBet">Unlock bet</button>
+					</div>
+					<div id="tileButtons">
+						<button id="lockPair">Lock Selection</button>
+						<button id="unlockPair">Unock Selection</button>
+					</div>
+					<div id="miscButtons">
+						<button id="quit">Quit</button>
+					</div>
+				</div>
+				<div>
+					<ul id="messages">
+
+					</ul>
+				</div>
+
+			</div>
+			<div id="rightbar"></div>
+		</div>
 
 	</body>
 

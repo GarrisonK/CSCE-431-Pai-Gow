@@ -1,0 +1,40 @@
+#leftbar {
+	background-color:#C0C0C0;
+	float:left;
+	min-height:100%;
+	min-width:10%;
+}
+
+#rightbar {
+	background-color:#C0C0C0;
+	float:right;
+	min-height:100%;
+	min-width: 10%;
+}
+
+#topbar {
+	background-color:#400000;
+	min-height: 8%;
+}
+
+#gamewindow {
+	background-color: #FFFFFF;
+	float:left;
+	width:80%;
+	min-height:100%;
+}
+
+#buttons {
+	min-height: 50%;
+}
+
+#messages {
+	height: 50%;
+	border:1px solid #ccc;
+	font:16px/26px Georgia, Garamond, Serif;
+	overflow:auto;
+	max-width:100%;
+	margin-left: 10px;
+	margin-right: 10px;
+
+}
