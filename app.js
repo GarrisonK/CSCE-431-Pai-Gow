@@ -28,6 +28,8 @@ var newPlayer = function(name,id,socket,minimumBet){
 	this.bet = minimumBet;
 	this.wallet = 50;
 	this.tiles = [];
+	this.tileSelection = [];
+	this.selectionLocked = false;
 }
 
 var newTable = function(){
@@ -101,13 +103,51 @@ io.sockets.on('connection',function(socket){
 		socket.emit('bet unlock confirm');
 	});
 
+	socket.on('tile selection',function(pair){
+		for(var i = 0; i < tables.length; i++){
+			for(var j = 0; j < 7; j++){
+				if(tables[i].seats[j].id == socket.id){
+					tables[i].seats[j].tileSelection = pair;
+					break;
+				}
+			}
+		}
+	});
+
+	socket.on('pair selection locked',function(pair){
+		for(var i = 0; i < tables.length; i++){
+			for(var j = 0; j < 7; j++){
+				if(tables[i].seats[j] != null){
+					if(tables[i].seats[j].id == socket.id){
+						tables[i].seats[j].tileSelection = pair;
+						tables[i].seats[j].selectionLocked = true;
+						socket.emit('confirm selection locked',pair);
+					}
+				}
+			}
+		}
+	});
+
+	socket.on('pair selection unlocked',function(){
+		for(var i = 0; i < tables.length; i++){
+			for(var j = 0; j < 7; j++){
+				if(tables[i].seats[j] != null){
+					if(tables[i].seats[j].id == socket.id){
+						tables[i].seats[j].selectionLocked = false;
+						socket.emit('confirm selection unlocked');
+					}
+				}
+			}
+		}
+	});
+
 });
 
 setInterval(function(){
 	var d = new Date();
 	var time = d.getTime();
 	for(var i = 0; i < tables.length; i++){
-		if(time - tables[i].timeOfLastStateChange > 10000){
+		if(time - tables[i].timeOfLastStateChange > 5000){
 			//this table needs to update
 			var currentState = tables[i].state;
 			tables[i].state = gameStates[(gameStates.indexOf(currentState)+1)%gameStates.length]
@@ -130,6 +170,18 @@ setInterval(function(){
 					}
 					tables[i].dealerTiles.push(tables[i].deck.tiles[count]);
 					count+=1;
+				}
+			}
+			if(tables[i].state == 'tile reveal'){
+				for(var j = 0; j < 7; j++){
+					if(tables[i].seats[j] != null){
+						tables[i].seats[j].socket.emit('other player tiles','dealer',tables[i].dealerTiles);
+						for(var k = 0; k < 7; k++){
+							if(tables[i].seats[k] != null){
+								tables[i].seats[j].socket.emit('other player tiles',tables[i].seats[k].id,tables[i].seats[k].tiles);
+							}
+						}
+					}
 				}
 			}
 
