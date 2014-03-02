@@ -18,20 +18,32 @@
 			var game = new Object();
 			game['wallet'] = 0;
 			game['bet'] = 0;
+			game['minimumBet'] = 0;
 			game['betsLocked'] = false;
+			game['state'] = "pregame";
+			game['stateChangeTime'] = 10000;
+			game['lastStateChange'] = 0;
+			game['banker'] = -1;
 
 			var updateGameInfo = function(){
+				var d = new Date();
+				var t = (game.stateChangeTime-(d.getTime()-game.lastStateChange))
+				t=t/1000;
+				if(t<0){
+					t = 0;
+				}
 				$("#gameInformation").empty();
-	    		$("#gameInformation").html("Current bet: $"+game.bet+"<br>Wallet: $"+game.wallet);
+	    		$("#gameInformation").html("Seconds remaining: "+t+"<br>Game state: "+game.state+"<br>Current bet: $"+game.bet+"<br>Wallet: $"+game.wallet);
 			}
 
 			$(function(){	//document is ready
-				socket.on('connection acknowledgment',function(wallet,bet){
+				socket.on('connection acknowledgment',function(wallet,bet,time){
+					game.lastStateChange = time;
 					game.bet = bet;
+					game.minimumBet = bet;
 					game.wallet = wallet;
     				$("#messages").prepend("<li>Got a connection from the server</li>");
-    				$("#gameInformation").empty();
-	    			$("#gameInformation").html("Current bet: $"+game.bet+"<br>Wallet: $"+game.wallet);
+    				updateGameInfo();
     			});
     			socket.on('bet lock confirm',function(bet){
     				$("#messages").prepend("<li>Server confirms bet lock at $"+bet+"</li>");
@@ -39,14 +51,35 @@
     			socket.on('bet unlock confirm',function(){
     				$("#messages").prepend("<li>Server confirms bet unlock.</li>");
     			});
-    			socket.on('game state change',function(state){
-    				$("#messages").prepend("<li>Game state changed to "+state+"</li>")
+    			socket.on('game state change',function(state,time){
+    				game.state = state;
+    				if(state == "dealing" && !game.betsLocked){
+    					socket.emit("bet locked",game.bet);
+    					game.betsLocked = true;
+    				}
+    				if(state == "pregame"){
+    					game.bet = game.minimumBet;
+    				}
+    				game.lastStateChange = time;
+    				updateGameInfo();
+    				$("#messages").prepend("<li>Game state changed to "+state+"</li>");
     			});
+
+    			socket.on('player dealt',function(tile){
+    				$("#messages").prepend("<li>Player dealt tile "+tile+"</li>");
+    			});
+
+    			setInterval(function(){
+    				updateGameInfo();
+    			},1);
 
 
 
 				//button click listeners
 				$("#lockBet").click(function(){
+					if(game.state != "betting"){
+						return;
+					}
 					if(!game.betsLocked){
     					socket.emit("bet locked",game.bet);
     					game.betsLocked = true;
@@ -54,6 +87,9 @@
     			});
 
     			$("#unlockBet").click(function(){
+    				if(game.state != "betting"){
+    					return;
+    				}
     				if(game.betsLocked){
     					game.betsLocked = false;
     					socket.emit("bet unlocked");
@@ -61,18 +97,27 @@
     			});
 
     			$("#bet5").click(function(){
+    				if(game.betsLocked || game.state != "betting"){
+    					return;
+    				}
     				if(game.wallet >= game.bet+5){
     					game.bet = game.bet+5;
     				}
     				updateGameInfo();
     			});
     			$("#bet10").click(function(){
+    				if(game.betsLocked || game.state != "betting"){
+    					return;
+    				}
     				if(game.wallet >= game.bet+10){
     					game.bet = game.bet+10;
     				}
     				updateGameInfo();
     			});
     			$("#bet25").click(function(){
+    				if(game.betsLocked || game.state != "betting"){
+    					return;
+    				}
     				if(game.wallet >= game.bet+25){
     					game.bet = game.bet+25;
     				}

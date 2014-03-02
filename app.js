@@ -11,8 +11,14 @@ var http = require('http'),
 	var tables = [];
 	var gameStates = ["pregame","betting","dealing","pair selection","tile reveal","endgame"];
 
+var shuffleDeck = function(deck){
+	for(var j,x,i = deck.length; i; j=Math.floor(Math.random()*i),x=deck[--i],deck[i]=deck[j],deck[j]=x);
+	return deck;
+}
+
 var newDeck = function(){
-	this.tiles = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31];
+	this.tiles = shuffleDeck([0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31]);
+
 }
 
 var newPlayer = function(name,id,socket,minimumBet){
@@ -21,6 +27,7 @@ var newPlayer = function(name,id,socket,minimumBet){
 	this.socket = socket;
 	this.bet = minimumBet;
 	this.wallet = 50;
+	this.tiles = [];
 }
 
 var newTable = function(){
@@ -30,6 +37,8 @@ var newTable = function(){
 	this.deck = new newDeck();
 	this.seats = [null,null,null,null,null,null,null];
 	this.minimumBet = 5;
+	this.banker = -1; //dealer is banker
+	this.dealerTiles = [];
 }
 
 var addPlayer = function(table,player){
@@ -62,8 +71,8 @@ io.sockets.on('connection',function(socket){
 	// console.log(tables);
 
 
-
-	socket.emit("connection acknowledgment",player.wallet,player.bet);
+	var d = new Date();
+	socket.emit("connection acknowledgment",player.wallet,player.bet,d.getTime(),table.banker);
 
 	socket.on('disconnect',function(){
 		console.log("disconnect "+player.name);
@@ -105,9 +114,25 @@ setInterval(function(){
 			tables[i].timeOfLastStateChange = time;
 			for(var j = 0; j < tables.length; j++){
 				if(tables[i].seats[j] != null){
-					tables[i].seats[j].socket.emit('game state change',tables[i].state);
+					tables[i].seats[j].socket.emit('game state change',tables[i].state,time);
 				}
 			}
+
+			if(tables[i].state == "dealing"){
+				var count = 0;
+				for(var k = 0; k < 4; k++){ //deal 4 tiles each
+					for(var j = 0; j < 7; j++){
+						if(tables[i].seats[j] != null){
+							tables[i].seats[j].tiles.push(tables[i].deck.tiles[count]); //deal the tile
+							tables[i].seats[j].socket.emit('player dealt',tables[i].deck.tiles[count]);
+							count+=1;
+						}
+					}
+					tables[i].dealerTiles.push(tables[i].deck.tiles[count]);
+					count+=1;
+				}
+			}
+
 		}
 	}
 },1000);
