@@ -140,8 +140,8 @@
     				}
     				$("#messages").prepend("<li>Player dealt tile "+tile+"</li>");
     			});
-    			socket.on('other player tiles',function(id,tiles){
-    				$("#messages").prepend("<li>Player \'"+id+"\' dealt tile "+tiles+"</li>");
+    			socket.on('other player tiles',function(id,tiles,pair){
+    				$("#messages").prepend("<li>Player \'"+id+"\' dealt tile "+tiles+" and selected pair "+pair+"</li>");
     			});
     			socket.on('confirm selection locked',function(pair){
                     game.lastConfirmedSelection = pair;
@@ -150,6 +150,10 @@
     			socket.on('confirm selection unlocked',function(){
     				$("#messages").prepend("<li>Server confirms pair unlocked</li>");
     			});
+                socket.on('wallet update',function(wallet){
+                   $("#messages").prepend("<li>Wallet update: "+wallet+"</li>");
+                   game.wallet = wallet;
+                });
 
     			setInterval(function(){
     				updateGameInfo();
@@ -261,8 +265,6 @@
     					socket.emit('pair selection unlocked');
     				}
     			});
-
-
 			});
 
 		</script>

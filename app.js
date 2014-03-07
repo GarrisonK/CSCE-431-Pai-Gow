@@ -8,6 +8,255 @@ var http = require('http'),
 	var tileNames = ["Gee Joon","Gee Joon","Teen","Teen","Day","Day","Yun","Yun","Gor","Gor","Mooy","Mooy","Chong","Chong","Bon","Bon","Foo","Foo","Ping","Ping","Tit","Tit","Look","Look","Chop Gow","Chop Gow","Chop Bot","Chop Bot","Chop Chit","Chot Chit","Chop Ng","Chop Ng"];
 	var ranks = [1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9,10,10,11,11,12,12,13,13,14,14,15,15,16,16];
 
+
+	//code used for finding the winner of a round
+
+
+	function getNumDots(id){
+		return dots[id];
+	}
+
+	function getRank(id){
+		return ranks[id];
+	}
+
+	function getNonPairValue(id1, id2){
+		//returns 0-9 representing value, or -1 if the ids form a pair
+		//If one of the tiles is the Gee Joon, returns the better of the two possible values.
+		if(isPair(id1,id2)){
+			return -1;
+		}
+		else{
+			if(getRank(id1) == 1){
+				var val1 = 3+getNumDots(id2);
+				var val2 = 6+getNumDots(id2);
+				if(val1%10 > val2%10){
+					return val1%10;
+				}
+				return val2%10;
+			}
+			else if(getRank(id2) == 1){
+				var val1 = 3+getNumDots(id1);
+				var val2 = 6+getNumDots(id1);
+				if(val1%10 > val2%10){
+					return val1%10;
+				}
+				return val2%10;
+			}
+			else{
+				var val = getNumDots(id1)+getNumDots(id2);
+				return val%10;
+			}
+		}
+	}
+
+	function isPair(id1, id2){
+		if(getRank(id1) == getRank(id2)){
+			return true;
+		}
+		return false;
+	}
+
+	function isWong(id1, id2){
+		if(getRank(id1) == 2 && getNumDots(id2) == 9){
+			return true;
+		}
+		if(getRank(id1) == 3 && getNumDots(id2) == 9){
+			return true;
+		}
+		if(getRank(id2) == 2 && getNumDots(id1) == 9){
+			return true;
+		}
+		if(getRank(id2) == 3 && getNumDots(id1) == 9){
+			return true;
+		}
+		return false;
+	}
+
+	function isGong(id1, id2){
+		if(getRank(id1) == 2 && getNumDots(id2) == 8){
+			return true;
+		}
+		if(getRank(id1) == 3 && getNumDots(id2) == 8){
+			return true;
+		}
+		if(getRank(id2) == 2 && getNumDots(id1) == 8){
+			return true;
+		}
+		if(getRank(id2) == 3 && getNumDots(id1) == 8){
+			return true;
+		}
+		return false;
+	}
+
+	function getHighestRank(id1, id2){
+		//considers the rule that a Gee Joon outside of a pair is the lowest ranking tile possible for tie breaking
+		if(getRank(id1) == 1){
+			return getRank(id2);
+		}
+		else if(getRank(id2) == 1){
+			return getRank(id1);
+		}
+		else if(getRank(id1) < getRank(id2)){
+			return getRank(id1);
+		}
+		return getRank(id2);
+	}
+
+	function getWinner(id1, id2, id3, id4){
+		//Returns 1 if the first set wins, 2 if the second set wins, or -1 if there is a tie
+
+		if(isPair(id1,id2) && !isPair(id3,id4)){
+			return 1;
+		}
+		if(!isPair(id1,id2) && isPair(id3,id4)){
+			return 2;
+		}
+		if(isPair(id1,id2) && isPair(id3,id4)){
+			if(getRank(id1) < getRank(id3)) return 1;
+			else return 2;
+		}
+
+		//neither is a pair
+
+		if((isWong(id1,id2) && isWong(id3,id4)) || (isGong(id1,id2) && isGong(id3,id4))){
+			var highestRank1 = getHighestRank(id1,id2);
+			var highestRank2 = getHighestRank(id3,id4);
+			if(highestRank1 < highestRank2){
+				return 1;
+			}
+			else{
+				return 2;
+			}
+		}
+		else if(isWong(id1,id2)){
+			return 1;
+		}
+		else if(isWong(id3,id4)){
+			return 2;
+		}
+		else if(isGong(id1,id2)){
+			return 1;
+		}
+		else if(isGong(id3,id4)){
+			return 2;
+		}
+
+		//Neither is a pair or Wong/Gong
+		var val1 = getNonPairValue(id1,id2);
+		var val2 = getNonPairValue(id3,id4);
+
+		if(val1>val2) return 1;
+		else if(val2>val1) return 2;
+		else{
+			if(val1 == 0 && val2 == 0) return -1;
+			var highestRank1 = getHighestRank(id1,id2);
+			var highestRank2 = getHighestRank(id3,id4);
+
+			if(highestRank1 < highestRank2){
+				return 1;
+			}
+			else if(highestRank2 < highestRank1){
+				return 2;
+			}
+			else return -1;
+
+
+		}
+	}
+
+	function getOtherPair(tiles,selection){
+		//returns the second pair
+		//ex: tiles = [0,1,2,3], selection = [1,2]
+		//will return [0,3]
+		var pair = [];
+		for(var i = 0; i < tiles.length; i++){
+			if(selection.indexOf(tiles[i]) == -1){
+				pair.push(tiles[i]);
+			}
+		}
+		return pair;
+	}
+
+	function getBestPairSelection(tiles){
+		//will return a pair of values
+		//TODO fully implement, currently just returns default split
+		return [tiles[0],tiles[1]];
+	}
+
+	function getRoundWinner(bankerTiles, bankerSelection, opTiles, opSelection){
+		//returns 1 if 1 wins, 2 if 2 wins, -1 if push
+		//tiles1 is assumed to be the banker (winner of ties)
+
+		bankerOther = getOtherPair(bankerTiles,bankerSelection);
+		opOther = getOtherPair(opTiles,opSelection);
+
+		bankerHigh = [];
+		bankerLow = [];
+		opHigh = [];
+		opLow = [];
+
+		if(getWinner(bankerSelection[0],bankerSelection[1],bankerOther[0],bankerOther[1]) == 1){
+			bankerHigh = bankerSelection;
+			bankerLow = bankerOther;
+		}
+		else{
+			bankerHigh = bankerOther;
+			bankerLow = bankerSelection;
+		}
+
+		if(getWinner(opSelection[0],opSelection[1],opOther[0],opSelection[1]) == 1){
+			opHigh = opSelection;
+			opLow = opOther;
+		}
+		else{
+			opHigh = opOther;
+			opLow = opSelection;
+		}
+
+		//compare highs
+		var result = 0;
+		var highWinner = getWinner(bankerHigh[0],bankerHigh[1],opHigh[0],opHigh[1]);
+		if(highWinner == 1){
+			result += 1;
+		}
+		else if(highWinner == 2){
+			result -= 1;
+		}
+		else{
+			//tie, banker wins
+			result += 1;
+		}
+
+		var lowWinner = getWinner(bankerLow[0],bankerLow[1],opLow[0],opLow[1]);
+		if(lowWinner == 1){
+			result += 1;
+		}
+		else if(lowWinner == 2){
+			result -= 1;
+		}
+		else{
+			//tie, banker wins
+			result +=1;
+		}
+
+		if(result == 2){
+			//banker wins, return 1
+			return 1;
+		}
+		else if(result == -2){
+			//opponent wins, return 2
+			return 2;
+		}
+		else{
+			// either 1 or -1, indicating neither player won both matches. Push, return -1
+			return -1;
+		}
+
+	}
+
+
+
 	var tables = [];
 	var gameStates = ["pregame","betting","dealing","pair selection","tile reveal","endgame"];
 
@@ -70,7 +319,6 @@ io.sockets.on('connection',function(socket){
 	var player = new newPlayer(socket.id,socket.id,socket,table.minimumBet);
 	addPlayer(table,player);
 	tables.push(table);
-	// console.log(tables);
 
 
 	var d = new Date();
@@ -95,7 +343,9 @@ io.sockets.on('connection',function(socket){
 
 	socket.on('bet locked',function(bet){
 		if(player.wallet >= bet){
+			player.bet = bet;
 			socket.emit('bet lock confirm',bet);
+
 		}
 	});
 
@@ -151,7 +401,6 @@ io.sockets.on('connection',function(socket){
 
 	socket.on('pair selection locked',function(pair){
 		//TODO check if player was dealt these tiles
-		console.log("\n\n received: "+pair+"\n\n\n");
 		for(var i = 0; i < tables.length; i++){
 			for(var j = 0; j < 7; j++){
 				if(tables[i].seats[j] != null){
@@ -212,19 +461,54 @@ setInterval(function(){
 			if(tables[i].state == 'tile reveal'){
 				for(var j = 0; j < 7; j++){
 					if(tables[i].seats[j] != null){
+						//tell each player their final tile selection
 						tables[i].seats[j].socket.emit('finalize tile selection',tables[i].seats[j].tileSelection);
 					}
 				}
+				//reveal all player's tiles
 				for(var j = 0; j < 7; j++){
 					if(tables[i].seats[j] != null){
-						tables[i].seats[j].socket.emit('other player tiles','dealer',tables[i].dealerTiles);
+						tables[i].dealerSelection = getBestPairSelection(tables[i].dealerTiles);
+						tables[i].seats[j].socket.emit('other player tiles','dealer',tables[i].dealerTiles,tables[i].dealerSelection);
 						for(var k = 0; k < 7; k++){
 							if(tables[i].seats[k] != null){
-								tables[i].seats[j].socket.emit('other player tiles',tables[i].seats[k].id,tables[i].seats[k].tiles);
+								tables[i].seats[j].socket.emit('other player tiles',tables[i].seats[k].id,tables[i].seats[k].tiles,tables[i].seats[k].tileSelection);
 							}
 						}
 					}
 				}
+
+				//now reveal winners and payout
+				if(tables[i].banker == -1){
+					//dealer is the banker
+					var bankerHigh = getBestPairSelection(tables[i].dealerTiles);
+					var bankerLow = getOtherPair(tables[i].dealerTiles,bankerHigh);
+					for(var j = 0; j < tables[i].seats.length; j++){
+						if(tables[i].seats[j] != null){
+							var roundWinner = getRoundWinner(tables[i].dealerTiles,tables[i].dealerSelection,tables[i].seats[j].tiles,tables[i].seats[j].tileSelection);
+							if(roundWinner == 1){
+								//banker win
+								tables[i].seats[j].wallet -= tables[i].seats[j].bet;
+								tables[i].seats[j].socket.emit('wallet update',tables[i].seats[j].wallet);
+							}
+							else if(roundWinner == 2){
+								//opponent win
+								tables[i].seats[j].wallet += tables[i].seats[j].bet;
+								tables[i].seats[j].socket.emit('wallet update',tables[i].seats[j].wallet);
+							}
+							else{
+								//push
+							}
+
+
+
+						}
+					}
+				}
+				else{
+					//dealer not banker
+				}
+
 			}
 
 		}
