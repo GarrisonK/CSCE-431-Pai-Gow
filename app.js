@@ -104,19 +104,54 @@ io.sockets.on('connection',function(socket){
 	});
 
 	socket.on('tile selection',function(pair){
-		//TODO check if player has these tiles
-		for(var i = 0; i < tables.length; i++){
-			for(var j = 0; j < 7; j++){
-				if(tables[i].seats[j].id == socket.id){
-					tables[i].seats[j].tileSelection = pair;
-					break;
+		if(pair.length != 2){
+			//find this player, return default selection or last valid selection
+			//in normal play, this code should never run
+			for(var i = 0; i < tables.length; i++){
+				for(var j = 0; j < tables[i].seats.length; j++){
+					if(tables[i].seats[j] != null){
+						if(tables[i].seats[j].id == socket.id){
+							//found player
+							if(tables[i].seats[j].tileSelection.length == 2){
+								//player has a previous valid selection, reuse this
+								socket.emit('confirm tile selection', pair);
+							}
+							else{
+								//apply the default selection
+								tables[i].seats[j].tileSelection = [tables[i].seats[j].tiles[0],tables[i].seats[j].tiles[1]];
+								socket.emit('confirm tile selection',tables[i].seats[j].tileSelection);
+							}
+						}
+					}
 				}
 			}
 		}
-		socket.emit('confirm tile selection', pair);
+		else{
+			for(var i = 0; i < tables.length; i++){
+				for(var j = 0; j < 7; j++){
+					if(tables[i].seats[j].id == socket.id){
+						for(var k = 0; k < pair.length; k++){
+							//check that the player was dealt these tiles
+							if(tables[i].seats[j].tiles.indexOf(pair[k]) == -1){
+								//the player does not have access to this tile, apply default selection
+								tables[i].seats[j].tileSelection = [tables[i].seats[j].tiles[0],tables[i].seats[j].tiles[1]];
+								socket.emit('confirm tile selection',tables[i].seats[j].tileSelection);
+								return;
+							}
+						}
+						//at this point, the player has been confirmed to have been dealt the tiles in pair
+						tables[i].seats[j].tileSelection = pair;
+						break;
+					}
+				}
+			}
+			socket.emit('confirm tile selection', pair);
+		}
 	});
 
 	socket.on('pair selection locked',function(pair){
+		//TODO check if player was dealt these tiles
+		console.log("\n\n received: "+pair+"\n\n\n");
 		for(var i = 0; i < tables.length; i++){
 			for(var j = 0; j < 7; j++){
 				if(tables[i].seats[j] != null){

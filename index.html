@@ -33,8 +33,10 @@
 			game['tiles'] = [];
 			game['selectedTiles'] = [];
 			game['selectionLocked'] = false;
+            game['lastConfirmedSelection'] = []; //the last verified valid selection, is used if the player ends selection phase unlocked
 
 			var updateGameInfo = function(){
+                //Prints seconds remaining, game state, etc
 				var d = new Date();
 				var t = (game.stateChangeTime-(d.getTime()-game.lastStateChange))
 				t=t/1000;
@@ -48,23 +50,12 @@
             //takes a pair and highlights those tiles
             var highlightTiles = function(pair){
                 var divs = $('#one, #two, #three, #four');
-                // for(var i = 0; i < pair.length; i++){
-                //     for(var j = 0; j < 4; j++){
-                //         console.log(divs[j]);
-                //         if(game.tiles[j] == pair[i]){
-                //             divs[j].className = 'tileSelected';
-                //             // divs[j].attr('class','tileSelected');
-                //         }
-                //     }
-                // }
 
                 for(var i = 0; i < game.tiles.length; i++){
                     if(pair.indexOf(game.tiles[i]) == -1){
-                        console.log('setting '+divs[i]+' to not selected');
                         divs[i].className = 'tile';
                     }
                     else{
-                        console.log('setting '+divs[i]+' to selected');
                         divs[i].className = 'tileSelected';
                     }
                 }
@@ -96,17 +87,20 @@
     				}
     				if(state == "tile reveal"){
     					if(game.selectedTiles.length != 2 && game.selectionLocked == false){
-    						game.selectedTiles = [game.tiles[0],game.tiles[1]];
-    						$('#one').attr('class','tileSelected');	//default selection
-    						$('#two').attr('class','tileSelected');
-    						$('#three').attr('class','tile');
-    						$('#four').attr('class','tile');
+                            if(game.lastConfirmedSelection.length == 2){
+                                //the user had perviously locked with a valid selection, reapply this selection
+                                game.selectedTiles = game.lastConfirmedSelection;
+                            }
+                            else{
+                                //the user has not locked anything, and doesn't have two tiles selected. Apply default.
+        						game.selectedTiles = [game.tiles[0],game.tiles[1]];
+                            }
                             socket.emit('tile selection',game.selectedTiles);
     					}
-                        else if(game.selectionLocked == true && game.selectedTiles != 2){
-                            
-                        }
     					else if(game.selectionLocked == false){
+                            //player hasn't locked, but has two tiles highlighted
+                            //consider changing this logic, do we want to use the two selected, or the last locked in pair?
+                            game.selectedTiles = game.lastConfirmedSelection;
     						socket.emit('tile selection', game.selectedTiles);
     					}
     					else{
@@ -120,6 +114,7 @@
 
                 socket.on('confirm tile selection',function(pair){
                     $("#messages").prepend("<li>Server confirms pair selection: "+pair+"</li>");
+                    game.lastConfirmedSelection = pair;
                     //on the confirmation, change the highlighted tiles
                     highlightTiles(pair);
                 });
@@ -146,10 +141,10 @@
     				$("#messages").prepend("<li>Player dealt tile "+tile+"</li>");
     			});
     			socket.on('other player tiles',function(id,tiles){
-    				console.log(tiles);
-    				$("#messages").prepend("<li>Player "+id+" dealt tile "+tiles+"</li>");
+    				$("#messages").prepend("<li>Player \'"+id+"\' dealt tile "+tiles+"</li>");
     			});
     			socket.on('confirm selection locked',function(pair){
+                    game.lastConfirmedSelection = pair;
     				$("#messages").prepend("<li>Server confirms pair locked: "+pair+"</li>");
     			});
     			socket.on('confirm selection unlocked',function(){
@@ -211,7 +206,7 @@
     				updateGameInfo();
     			});
     			$("#one").click(function(){
-    				if(game.state == "pair selection"){
+    				if(game.state == "pair selection" && !game.selectionLocked){
     					$(this).toggleClass("tileSelected");
     					if($(this).attr('class') == "tile tileSelected"){
     						game.selectedTiles.push(game.tiles[0]);
@@ -220,10 +215,9 @@
     						game.selectedTiles.splice(0,1);
     					}
     				}
-    				console.log(game.selectedTiles);
     			});
     			$("#two").click(function(){
-    				if(game.state == "pair selection"){
+    				if(game.state == "pair selection" && !game.selectionLocked){
     					$(this).toggleClass("tileSelected");
     					if($(this).attr('class') == "tile tileSelected"){
     						game.selectedTiles.push(game.tiles[1]);
@@ -234,7 +228,7 @@
     				}
     			});
     			$("#three").click(function(){
-    				if(game.state == "pair selection"){
+    				if(game.state == "pair selection" && !game.selectionLocked){
     					$(this).toggleClass("tileSelected");
     					if($(this).attr('class') == "tile tileSelected"){
     						game.selectedTiles.push(game.tiles[2]);
@@ -245,7 +239,7 @@
     				}
     			});
     			$("#four").click(function(){
-    				if(game.state == "pair selection"){
+    				if(game.state == "pair selection" && !game.selectionLocked){
     					$(this).toggleClass("tileSelected");
     					if($(this).attr('class') == "tile tileSelected"){
     						game.selectedTiles.push(game.tiles[3]);
