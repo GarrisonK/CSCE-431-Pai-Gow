@@ -104,6 +104,7 @@ io.sockets.on('connection',function(socket){
 	});
 
 	socket.on('tile selection',function(pair){
+		//TODO check if player has these tiles
 		for(var i = 0; i < tables.length; i++){
 			for(var j = 0; j < 7; j++){
 				if(tables[i].seats[j].id == socket.id){
@@ -112,6 +113,7 @@ io.sockets.on('connection',function(socket){
 				}
 			}
 		}
+		socket.emit('confirm tile selection', pair);
 	});
 
 	socket.on('pair selection locked',function(pair){
@@ -173,6 +175,11 @@ setInterval(function(){
 				}
 			}
 			if(tables[i].state == 'tile reveal'){
+				for(var j = 0; j < 7; j++){
+					if(tables[i].seats[j] != null){
+						tables[i].seats[j].socket.emit('finalize tile selection',tables[i].seats[j].tileSelection);
+					}
+				}
 				for(var j = 0; j < 7; j++){
 					if(tables[i].seats[j] != null){
 						tables[i].seats[j].socket.emit('other player tiles','dealer',tables[i].dealerTiles);

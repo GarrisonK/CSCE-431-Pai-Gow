@@ -16,6 +16,8 @@
 			var tileNames = ["Gee Joon","Gee Joon","Teen","Teen","Day","Day","Yun","Yun","Gor","Gor","Mooy","Mooy","Chong","Chong","Bon","Bon","Foo","Foo","Ping","Ping","Tit","Tit","Look","Look","Chop Gow","Chop Gow","Chop Bot","Chop Bot","Chop Chit","Chot Chit","Chop Ng","Chop Ng"];
 			var ranks = [1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9,10,10,11,11,12,12,13,13,14,14,15,15,16,16];
 
+            var tileDivNames = ["#one","#two","#three","#four"];
+
 			var socket = io.connect();
 			var wallet = 0;
 			var bet = 0;
@@ -42,6 +44,31 @@
 				$("#gameInformation").empty();
 	    		$("#gameInformation").html("Seconds remaining: "+t+"<br>Game state: "+game.state+"<br>Current bet: $"+game.bet+"<br>Wallet: $"+game.wallet);
 			}
+
+            //takes a pair and highlights those tiles
+            var highlightTiles = function(pair){
+                var divs = $('#one, #two, #three, #four');
+                // for(var i = 0; i < pair.length; i++){
+                //     for(var j = 0; j < 4; j++){
+                //         console.log(divs[j]);
+                //         if(game.tiles[j] == pair[i]){
+                //             divs[j].className = 'tileSelected';
+                //             // divs[j].attr('class','tileSelected');
+                //         }
+                //     }
+                // }
+
+                for(var i = 0; i < game.tiles.length; i++){
+                    if(pair.indexOf(game.tiles[i]) == -1){
+                        console.log('setting '+divs[i]+' to not selected');
+                        divs[i].className = 'tile';
+                    }
+                    else{
+                        console.log('setting '+divs[i]+' to selected');
+                        divs[i].className = 'tileSelected';
+                    }
+                }
+            }
 
 			$(function(){	//document is ready
 				socket.on('connection acknowledgment',function(wallet,bet,time){
@@ -74,7 +101,11 @@
     						$('#two').attr('class','tileSelected');
     						$('#three').attr('class','tile');
     						$('#four').attr('class','tile');
+                            socket.emit('tile selection',game.selectedTiles);
     					}
+                        else if(game.selectionLocked == true && game.selectedTiles != 2){
+                            
+                        }
     					else if(game.selectionLocked == false){
     						socket.emit('tile selection', game.selectedTiles);
     					}
@@ -86,6 +117,17 @@
     				updateGameInfo();
     				$("#messages").prepend("<li>Game state changed to "+state+"</li>");
     			});
+
+                socket.on('confirm tile selection',function(pair){
+                    $("#messages").prepend("<li>Server confirms pair selection: "+pair+"</li>");
+                    //on the confirmation, change the highlighted tiles
+                    highlightTiles(pair);
+                });
+
+                socket.on('finalize tile selection',function(pair){
+                    $("#messages").prepend("<li>Server finalizes pair selection: "+pair+"</li>");
+                    highlightTiles(pair);
+                });
 
     			socket.on('player dealt',function(tile){
     				game.tiles.push(tile);
