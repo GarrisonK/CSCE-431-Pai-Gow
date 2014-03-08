@@ -260,13 +260,8 @@ var http = require('http'),
 	var tables = [];
 	var gameStates = ["pregame","betting","dealing","pair selection","tile reveal","endgame"];
 
-var shuffleDeck = function(deck){
-	for(var j,x,i = deck.length; i; j=Math.floor(Math.random()*i),x=deck[--i],deck[i]=deck[j],deck[j]=x);
-	return deck;
-}
-
 var newDeck = function(){
-	this.tiles = shuffleDeck([0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31]);
+	this.tiles = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31];
 
 }
 
@@ -286,10 +281,15 @@ var newTable = function(){
 	this.timeOfLastStateChange = d.getTime();
 	this.state = gameStates[0];
 	this.deck = new newDeck();
+	this.shuffle = function(){
+		for(var j,x,i = this.deck.tiles.length; i; j=Math.floor(Math.random()*i),x=this.deck.tiles[--i],this.deck.tiles[i]=this.deck.tiles[j],this.deck.tiles[j]=x);
+	}
+	this.shuffle();
 	this.seats = [null,null,null,null,null,null,null];
 	this.minimumBet = 5;
 	this.banker = -1; //dealer is banker
 	this.dealerTiles = [];
+	this.dealerSelection = [];
 }
 
 var addPlayer = function(table,player){
@@ -444,7 +444,14 @@ setInterval(function(){
 				}
 			}
 
-			if(tables[i].state == "dealing"){
+			if(tables[i].state == "pregame"){
+				for(var j = 0; j < tables[i].seats.length; j++){
+					if(tables[i].seats[j] != null){
+						tables[i].seats[j].socket.emit('pregame game information',tables[i].banker);
+					}
+				}
+			}
+			else if(tables[i].state == "dealing"){
 				var count = 0;
 				for(var k = 0; k < 4; k++){ //deal 4 tiles each
 					for(var j = 0; j < 7; j++){
@@ -458,7 +465,7 @@ setInterval(function(){
 					count+=1;
 				}
 			}
-			if(tables[i].state == 'tile reveal'){
+			else if(tables[i].state == 'tile reveal'){
 				for(var j = 0; j < 7; j++){
 					if(tables[i].seats[j] != null){
 						//tell each player their final tile selection
@@ -488,27 +495,76 @@ setInterval(function(){
 							var roundWinner = getRoundWinner(tables[i].dealerTiles,tables[i].dealerSelection,tables[i].seats[j].tiles,tables[i].seats[j].tileSelection);
 							if(roundWinner == 1){
 								//banker win
+								tables[i].seats[j].socket.emit('match result','banker win');
 								tables[i].seats[j].wallet -= tables[i].seats[j].bet;
 								tables[i].seats[j].socket.emit('wallet update',tables[i].seats[j].wallet);
 							}
 							else if(roundWinner == 2){
 								//opponent win
+								tables[i].seats[j].socket.emit('match result','opponent win');
 								tables[i].seats[j].wallet += tables[i].seats[j].bet;
 								tables[i].seats[j].socket.emit('wallet update',tables[i].seats[j].wallet);
 							}
 							else{
 								//push
+								tables[i].seats[j].socket.emit('match result','push');
 							}
-
-
-
 						}
 					}
 				}
 				else{
-					//dealer not banker
+					//dealer is not the banker
+					var bankerHigh = getBestPairSelection(tables[i].seats[tables[i].banker].tiles);
+					var bankerLow = getOtherPair(tables[i].seats[tables[i].banker].tiles,bankerHigh);
+					//first, compare the dealer tiles to the banker
+					var roundWinner = getRoundWinner(tables[i].seats[tables[i].banker].tiles, tables[i].seats[tables[i].banker].tileSelection,tables[i].dealerTiles,tables[i].dealerSelection);
+					if(roundWinner == 1){
+						//banker wins
+						tables[i].seats[tables[i].banker].socket.emit('match result','banker win');
+						tables[i].seats[tables[i].banker].wallet += tables[i].minimumBet;
+						console.log("new wallet: "+tables[i].seats[tables[i].banker].wallet);
+						tables[i].seats[tables[i].banker].socket.emit('wallet update',tables[i].seats[tables[i].banker].wallet);
+					}
+					else if(roundWinner == 2){
+						//dealer wins
+						tables[i].seats[tables[i].banker].socket.emit('match result','banker win');
+						tables[i].seats[tables[i].banker].wallet -= tables[i].minimumBet;
+						tables[i].seats[tables[i].banker].socket.emit('wallet update',tables[i].seats[tables[i].banker].wallet);
+					}
+					else{
+						//push
+						tables[i].seats[tables[i].banker].socket.emit('match result','push');
+					}
+
 				}
 
+			}
+			else if(tables[i].state == 'endgame'){
+				//reset all game information, shuffle deck
+				for(var j = 0; j < tables[i].seats.length; j++){
+					if(tables[i].seats[j] != null){
+						tables[i].seats[j].tiles = [];
+						tables[i].seats[j].tileSelection = [];
+						tables[i].seats[j].selectionLocked = false;
+					}
+				}
+				tables[i].shuffle();
+				tables[i].dealerTiles = [];
+				tables[i].dealerSelection = [];
+				//TODO update banker
+				while(true){
+					tables[i].banker += 1;
+					if(tables[i].banker == 7){
+						tables[i].banker = -1;
+					}
+					if(tables[i].banker != -1 && tables[i].seats[tables[i].banker] == null){
+						//continue looking for next banker
+					}
+					else{
+						//found a player to be the next banker
+						break;
+					}
+				}
 			}
 
 		}

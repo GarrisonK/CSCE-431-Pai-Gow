@@ -44,8 +44,27 @@
 					t = 0;
 				}
 				$("#gameInformation").empty();
-	    		$("#gameInformation").html("Seconds remaining: "+t+"<br>Game state: "+game.state+"<br>Current bet: $"+game.bet+"<br>Wallet: $"+game.wallet);
+	    		$("#gameInformation").html("Seconds remaining: "+t+"<br>Game state: "+game.state+"<br>Current bet: $"+game.bet+"<br>Wallet: $"+game.wallet+"<br>Tile selection: "+game.selectedTiles+"<br>Banker: "+game.banker);
 			}
+
+            //called to reset all information to begin a new game
+            function resetGameInfo(){
+                game.bet = game.minimumBet;
+                game.betsLocked = false;
+                game.tiles = [];
+                game. selectedTiles = [];
+                game.selectionLocked = false;
+                game.lastConfirmedSelection = [];
+                resetTileDivs();
+            }
+
+            function resetTileDivs(){
+                var divs = $('#one, #two, #three, #four');
+                for(var i = 0; i < divs.length; i++){
+                    divs.eq(i).empty();
+                    divs.eq(i).removeClass('tileSelected').addClass('tile');
+                }
+            }
 
             //takes a pair and highlights those tiles
             var highlightTiles = function(pair){
@@ -107,6 +126,9 @@
     						socket.emit('tile selection', game.selectedTiles);	
     					}
     				}
+                    if(state == 'endgame'){
+                        resetGameInfo();
+                    }
     				game.lastStateChange = time;
     				updateGameInfo();
     				$("#messages").prepend("<li>Game state changed to "+state+"</li>");
@@ -153,6 +175,20 @@
                 socket.on('wallet update',function(wallet){
                    $("#messages").prepend("<li>Wallet update: "+wallet+"</li>");
                    game.wallet = wallet;
+                });
+                socket.on('match result',function(result){
+                    if(result == 'push'){
+                        $("#messages").prepend("<li>Matched ended in a push</li>");
+                    }
+                    if(result == 'banker win'){
+                        $("#messages").prepend("<li>Banker win</li>");
+                    }
+                    if(result == 'opponent win'){
+                        $("#messages").prepend("<li>Opponent win</li>");
+                    }
+                });
+                socket.on('pregame game information',function(banker){
+                    game.banker = banker;
                 });
 
     			setInterval(function(){
