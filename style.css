@@ -78,3 +78,11 @@ div.tileSelected {
 	margin-top: 10px;
 	background-color: yellow;
 }
+
+canvas#game{
+	border-style: solid;
+	border-color: #000000;
+	border-width: 2px;
+	height: 50%;
+	width: 100%;
+}

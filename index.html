@@ -3,6 +3,7 @@
 	<head>
 		<script src="/socket.io/socket.io.js"></script>
 		<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js"></script>
+        <script type="text/javascript" src="paper.js"></script>
 		<link rel="stylesheet" type="text/css" href="style.css">
 	</head>
 
@@ -11,6 +12,27 @@
 	<body>
 
 		<script>
+
+            paper.install(window);
+
+
+            $(function(){
+
+                paper.setup('game');
+                var path;
+                function onMouseDown(event){
+                    path = new Path();
+                    path.strokeColor = "black";
+                    path.add(event.point);
+                }
+
+                var tool = new Tool();
+                tool.onMouseDown = onMouseDown;
+                tool.onMouseDrag = function(event){
+                    path.add(event.point);
+                }
+            });
+            
 
 			var dots = [3,6,12,12,2,2,8,8,4,4,10,10,6,6,4,4,11,11,10,10,7,7,6,6,9,9,8,8,7,7,5,5];
 			var tileNames = ["Gee Joon","Gee Joon","Teen","Teen","Day","Day","Yun","Yun","Gor","Gor","Mooy","Mooy","Chong","Chong","Bon","Bon","Foo","Foo","Ping","Ping","Tit","Tit","Look","Look","Chop Gow","Chop Gow","Chop Bot","Chop Bot","Chop Chit","Chot Chit","Chop Ng","Chop Ng"];
@@ -309,46 +331,47 @@
 			<div id="topbar"></div>
 			<div id="leftbar"></div>
 			<div id="gamewindow">
-				<div id="buttons">
-					<div id="betting Buttons">
-						<button id="bet5">Bet $5</button>
-						<button id="bet10">Bet $10</button>
-						<button id="bet25">Bet $25</button>
-						<button id="lockBet">Lock bet</button>
-						<button id="unlockBet">Unlock bet</button>
-					</div>
-					<div id="tileButtons">
-						<button id="lockPair">Lock Selection</button>
-						<button id="unlockPair">Unock Selection</button>
-					</div>
-					<div id="miscButtons">
-						<button id="quit">Quit</button>
-					</div>
-					<div id="gameInformation">
-						
-					</div>
-					<div id="tileSelection">
-						<div class="tile" id='one'>
-						</div>
-						<div class="tile" id='two'>
-						</div>
-						<div class="tile" id='three'>
-						</div>
-						<div class="tile" id='four'>
-						</div>
-					</div>
-				</div>
-				<div>
-					<ul id="messages">
+    				<!-- <div id="buttons">
+    					<div id="betting Buttons">
+    						<button id="bet5">Bet $5</button>
+    						<button id="bet10">Bet $10</button>
+    						<button id="bet25">Bet $25</button>
+    						<button id="lockBet">Lock bet</button>
+    						<button id="unlockBet">Unlock bet</button>
+    					</div>
+    					<div id="tileButtons">
+    						<button id="lockPair">Lock Selection</button>
+    						<button id="unlockPair">Unock Selection</button>
+    					</div>
+    					<div id="miscButtons">
+    						<button id="quit">Quit</button>
+    					</div>
+    					<div id="gameInformation">
+    						
+    					</div>
+    					<div id="tileSelection">
+    						<div class="tile" id='one'>
+    						</div>
+    						<div class="tile" id='two'>
+    						</div>
+    						<div class="tile" id='three'>
+    						</div>
+    						<div class="tile" id='four'>
+    						</div>
+    					</div>
+    				</div> -->
 
-					</ul>
-				</div>
+                <canvas id="game"></canvas>
 
-			</div>
-			<div id="rightbar"></div>
-		</div>
+    			<div>
+    				<ul id="messages"></ul>
+    			</div>
 
-	</body>
+		      </div>
+		      <div id="rightbar"></div>
+	       </div>
+
+    </body>
 
 
 

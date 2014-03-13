@@ -305,6 +305,11 @@ var app = http.createServer(function(req,res){
 		res.writeHead(200,{'Content-Type':'text/css'});
 		res.end(style,'binary');
 	}
+	else if(action == '/paper.js'){
+		var paper = fs.readFileSync('./paper.js');
+		res.writeHead(200,{'Content-Type':'text/javascript'});
+		res.end(paper,'binary');
+	}
 	else{
 		res.writeHead(200,{'content-Type':'text/html'});
 		res.end(index);
