@@ -19,18 +19,78 @@
             $(function(){
 
                 paper.setup('game');
-                var path;
-                function onMouseDown(event){
-                    path = new Path();
-                    path.strokeColor = "black";
-                    path.add(event.point);
+
+                var c = document.getElementById("game");
+                var ctx = c.getContext('2d');
+                // ctx.fillStyle = "#003300";
+                // ctx.fillRect(0,0,150,75);
+
+                // var path;
+                // function onMouseDown(event){
+                //     path = new Path();
+                //     path.strokeColor = "black";
+                //     path.add(event.point);
+                // }
+
+                // var tool = new Tool();
+                // tool.onMouseDown = onMouseDown;
+                // tool.onMouseDrag = function(event){
+                //     path.add(event.point);
+                // }
+
+                // view.onFrame = function(event){
+                //     // console.log("test");
+                //     ctx.fillStyle = "#003300";
+                //     ctx.fill();
+                // };
+
+                var tileWidth = 50;
+                var tileHeight = 75;
+                drawBankerSymbol = function(x,y){
+                    //x,y are the coordinates of the top left corner of the banker symbol
+                    ctx.fillStyle = "#FFFFFF";
+                    ctx.fillRect(x,y,20,20);
                 }
 
-                var tool = new Tool();
-                tool.onMouseDown = onMouseDown;
-                tool.onMouseDrag = function(event){
-                    path.add(event.point);
+                drawTileBack = function(x,y){
+                    ctx.fillStyle = "#000000";
+                    ctx.fillRect(x,y,tileWidth,tileHeight);
                 }
+
+                drawWagers = function(){
+                    ctx.fillStyle = "#000000";
+                    ctx.font = '20pt Calibri';
+                    ctx.fillText("Wager: "+game.bet,c.width/2,400);
+                    ctx.fillText("Dealer wager: "+game.minimumBet,c.width/2,200);
+                }
+
+                render = function(){
+                    
+                    //Fill background
+                    ctx.fillStyle = "#003300";
+                    ctx.fillRect(0,0,c.width,c.height);
+
+                    //Draw pot
+                    ctx.fillStyle = "#000000";
+                    ctx.beginPath();
+                    ctx.arc(c.width/2,c.height/2,50,0,2*Math.PI);
+                    ctx.stroke();
+
+                    if(game.banker == -1){
+                        drawBankerSymbol(500,30);
+                    }
+                    else{
+                        drawBankerSymbol(500,550);
+                    }
+
+                    drawTileBack(50,50);
+                    drawWagers();
+                }
+
+                setInterval(function(){
+                    render();
+                },100)
+                // paper.view.draw();
             });
             
 
