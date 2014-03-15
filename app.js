@@ -310,6 +310,11 @@ var app = http.createServer(function(req,res){
 		res.writeHead(200,{'Content-Type':'text/javascript'});
 		res.end(paper,'binary');
 	}
+	else if(action == '/tiles.png'){
+		var tiles = fs.readFileSync('./tiles.png');
+		res.writeHead(200,{'Content-Type':'image/png'});
+		res.end(tiles,'binary');	
+	}
 	else{
 		res.writeHead(200,{'content-Type':'text/html'});
 		res.end(index);
