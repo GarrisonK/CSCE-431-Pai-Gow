@@ -44,8 +44,16 @@
                 //     ctx.fill();
                 // };
 
-                var tileWidth = 50;
-                var tileHeight = 75;
+                var tileWidth = 75;
+                var tileHeight = 150;
+                var tileImage = new Image();
+                var tileReady = false;
+                tileImage.src = "/tiles.png";
+                tileImage.onload = function(){
+                    tileReady = true;
+                }
+
+
                 drawBankerSymbol = function(x,y){
                     //x,y are the coordinates of the top left corner of the banker symbol
                     ctx.fillStyle = "#FFFFFF";
@@ -83,7 +91,12 @@
                         drawBankerSymbol(500,550);
                     }
 
-                    drawTileBack(50,50);
+                    if(tileReady){
+                        // ctx.drawImage(tileImage,tileLocations[0][0][0],tileLocations[0][0][1],tileWidth,tileHeight,10,10);
+                        ctx.drawImage(tileImage,tileLocations[0][0][0],tileLocations[0][0][1],tileWidth,tileHeight,100,100,tileWidth,tileHeight);
+
+                    }
+                    // drawTileBack(50,50);
                     drawWagers();
                 }
 
@@ -92,6 +105,12 @@
                 },100)
                 // paper.view.draw();
             });
+            
+
+            var tileLocations = [[[665,545],[750,545]],[[98,72],[182,72]]];
+
+            var tileX = 75;
+            var tileY = 150;
             
 
 			var dots = [3,6,12,12,2,2,8,8,4,4,10,10,6,6,4,4,11,11,10,10,7,7,6,6,9,9,8,8,7,7,5,5];
