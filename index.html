@@ -15,6 +15,10 @@
 
             paper.install(window);
 
+            var tileWidth = 75;
+            var tileHeight = 150;
+            var bet5ButtonInfo = [50,500,50,25];
+            var betLockButtonInfo = [50,400,50,25];
 
             $(function(){
 
@@ -44,13 +48,15 @@
                 //     ctx.fill();
                 // };
 
-                var tileWidth = 75;
-                var tileHeight = 150;
                 var tileImage = new Image();
                 var tileReady = false;
                 tileImage.src = "/tiles.png";
                 tileImage.onload = function(){
                     tileReady = true;
+                }
+
+                drawTile = function(id,x,y){
+                    ctx.drawImage(tileImage,tileLocations[id][0],tileLocations[id][1],tileWidth,tileHeight,x,y,tileWidth/2,tileHeight/2);
                 }
 
 
@@ -63,6 +69,25 @@
                 drawTileBack = function(x,y){
                     ctx.fillStyle = "#000000";
                     ctx.fillRect(x,y,tileWidth,tileHeight);
+                }
+
+                drawBettingButtons = function(){
+                    ctx.fillStyle = "#000000";
+                    ctx.fillRect(bet5ButtonInfo[0],bet5ButtonInfo[1],bet5ButtonInfo[2],bet5ButtonInfo[3]);
+                }
+
+                drawBetLockButton = function(){
+                    ctx.fillStyle = "#000000";
+                    ctx.fillRect(betLockButtonInfo[0],betLockButtonInfo[1],betLockButtonInfo[2],betLockButtonInfo[3]);
+                    if(game.betsLocked){
+                        ctx.fillStyle = "#FF0000";
+                        ctx.fillText("LOCKED",betLockButtonInfo[0],betLockButtonInfo[1]);
+                    }
+                    else{
+                        ctx.fillStyle = "#006600";
+                        ctx.fillText("UNLOCKED",betLockButtonInfo[0],betLockButtonInfo[1]);
+                    }
+
                 }
 
                 drawWagers = function(){
@@ -84,6 +109,12 @@
                     ctx.arc(c.width/2,c.height/2,50,0,2*Math.PI);
                     ctx.stroke();
 
+                    //Draw game state
+                    ctx.fillText("State: "+game.state,20,20);
+
+                    drawBetLockButton();
+
+
                     if(game.banker == -1){
                         drawBankerSymbol(500,30);
                     }
@@ -92,12 +123,21 @@
                     }
 
                     if(tileReady){
-                        // ctx.drawImage(tileImage,tileLocations[0][0][0],tileLocations[0][0][1],tileWidth,tileHeight,10,10);
-                        ctx.drawImage(tileImage,tileLocations[0][0][0],tileLocations[0][0][1],tileWidth,tileHeight,100,100,tileWidth,tileHeight);
+                        // ctx.drawImage(tileImage,tileLocations[0][0],tileLocations[0][1],tileWidth,tileHeight,100,100,tileWidth/2,tileHeight/2);
+
+                        // drawTile(0,dealerTileLocations[0][0],dealerTileLocations[0][1]);
+                        // drawTile(1,dealerTileLocations[1][0],dealerTileLocations[1][1]);
+                        // drawTile(2,dealerTileLocations[2][0],dealerTileLocations[2][1]);
+
+                        drawTile(0,seatTileLocations[0][0],seatTileLocations[0][1]);
+                        drawTile(1,seatTileLocations[1][0],seatTileLocations[1][1]);
+                        drawTile(2,seatTileLocations[2][0],seatTileLocations[2][1]);
+                        drawTile(30,seatTileLocations[3][0],seatTileLocations[3][1]);
 
                     }
                     // drawTileBack(50,50);
                     drawWagers();
+                    drawBettingButtons();
                 }
 
                 setInterval(function(){
@@ -107,7 +147,10 @@
             });
             
 
-            var tileLocations = [[[665,545],[750,545]],[[98,72],[182,72]]];
+            var tileLocations = [[665,545],[750,545],[98,72],[182,72],[286,72],[370,72],[478,74],[562,74],[666,74],[750,74],[97,229],[181,229],[285,229],[369,229],[477,231],[561,231],[655,231],[749,231],[96,386],[180,386],[284,386],[368,386],[476,388],[560,388],[664,388],[748,388],[96,543],[180,543],[284,543],[368,543],[476,545],[560,545]];
+
+            var dealerTileLocations = [[400,90],[400+1*(tileWidth/2+5),90],[400+2*(tileWidth/2+5),90],[400+3*(tileWidth/2+5),90]];
+            var seatTileLocations = [[400,450],[400+1*(tileWidth/2+5),450],[400+2*(tileWidth/2+5),450],[400+3*(tileWidth/2+5),450]];
 
             var tileX = 75;
             var tileY = 150;
@@ -146,6 +189,7 @@
 				}
 				$("#gameInformation").empty();
 	    		$("#gameInformation").html("Seconds remaining: "+t+"<br>Game state: "+game.state+"<br>Current bet: $"+game.bet+"<br>Wallet: $"+game.wallet+"<br>Tile selection: "+game.selectedTiles+"<br>Banker: "+game.banker);
+
 			}
 
             //called to reset all information to begin a new game
@@ -402,6 +446,37 @@
     					socket.emit('pair selection unlocked');
     				}
     			});
+
+                $("#game").click(function(e){
+                    var x = Math.floor((e.pageX-$("#game").offset().left));
+                    var y = Math.floor((e.pageY-$("#game").offset().top));
+                    console.log(x+" "+y);
+                    if(x>bet5ButtonInfo[0] && x<bet5ButtonInfo[0]+bet5ButtonInfo[2] && y>bet5ButtonInfo[1] && y < bet5ButtonInfo[1]+bet5ButtonInfo[3]){
+                        //the bet 5 button has been clicked
+                        if(game.betsLocked || game.state != "betting"){
+
+                        }
+                        else if(game.wallet >= game.bet+5){
+                            game.bet = game.bet+5;
+                        }
+                        updateGameInfo();
+                    }
+
+                    if(x>betLockButtonInfo[0] && x<betLockButtonInfo[0]+betLockButtonInfo[2] && y>betLockButtonInfo[1] && y < betLockButtonInfo[1]+betLockButtonInfo[3]){
+                        if(game.state == "betting"){
+                            console.log(game.betsLocked);
+                            if(!game.betsLocked){
+                                console.log("test");
+                                socket.emit("bet locked",game.bet);
+                                game.betsLocked = true;
+                            }
+                            else{
+                                game.betsLocked = false;
+                                socket.emit("bet unlocked");
+                            }
+                        }
+                    }
+                });
 			});
 
 		</script>
