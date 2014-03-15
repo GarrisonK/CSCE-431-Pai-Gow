@@ -59,6 +59,30 @@
                     ctx.drawImage(tileImage,tileLocations[id][0],tileLocations[id][1],tileWidth,tileHeight,x,y,tileWidth/2,tileHeight/2);
                 }
 
+                drawPlayerTiles = function(){
+                    if(game.state == "dealing" || game.state == "pair selection" || game.state == "tile reveal"){
+                        drawTile(game.tiles[0],seatTileLocations[0][0],seatTileLocations[0][1]);
+                        drawTile(game.tiles[1],seatTileLocations[1][0],seatTileLocations[1][1]);
+                        drawTile(game.tiles[2],seatTileLocations[2][0],seatTileLocations[2][1]);
+                        drawTile(game.tiles[3],seatTileLocations[3][0],seatTileLocations[3][1]);
+                    }
+                }
+
+                drawDealerTiles = function(){
+                    if(game.state == "dealing" || game.state == "pair selection"){
+                        drawTileBack(dealerTileLocations[0][0],dealerTileLocations[0][1]);
+                        drawTileBack(dealerTileLocations[1][0],dealerTileLocations[1][1]);
+                        drawTileBack(dealerTileLocations[2][0],dealerTileLocations[2][1]);
+                        drawTileBack(dealerTileLocations[3][0],dealerTileLocations[3][1]);
+                    }
+                    else if(game.state == 'tile reveal'){
+                        drawTile(game.dealerTiles[0],dealerTileLocations[0][0],dealerTileLocations[0][1]);
+                        drawTile(game.dealerTiles[1],dealerTileLocations[1][0],dealerTileLocations[1][1]);
+                        drawTile(game.dealerTiles[2],dealerTileLocations[2][0],dealerTileLocations[2][1]);
+                        drawTile(game.dealerTiles[3],dealerTileLocations[3][0],dealerTileLocations[3][1]);
+                    }
+                }
+
 
                 drawBankerSymbol = function(x,y){
                     //x,y are the coordinates of the top left corner of the banker symbol
@@ -68,7 +92,7 @@
 
                 drawTileBack = function(x,y){
                     ctx.fillStyle = "#000000";
-                    ctx.fillRect(x,y,tileWidth,tileHeight);
+                    ctx.fillRect(x,y,tileWidth/2,tileHeight/2);
                 }
 
                 drawBettingButtons = function(){
@@ -129,10 +153,13 @@
                         // drawTile(1,dealerTileLocations[1][0],dealerTileLocations[1][1]);
                         // drawTile(2,dealerTileLocations[2][0],dealerTileLocations[2][1]);
 
-                        drawTile(0,seatTileLocations[0][0],seatTileLocations[0][1]);
-                        drawTile(1,seatTileLocations[1][0],seatTileLocations[1][1]);
-                        drawTile(2,seatTileLocations[2][0],seatTileLocations[2][1]);
-                        drawTile(30,seatTileLocations[3][0],seatTileLocations[3][1]);
+                        // drawTile(0,seatTileLocations[0][0],seatTileLocations[0][1]);
+                        // drawTile(1,seatTileLocations[1][0],seatTileLocations[1][1]);
+                        // drawTile(2,seatTileLocations[2][0],seatTileLocations[2][1]);
+                        // drawTile(30,seatTileLocations[3][0],seatTileLocations[3][1]);
+
+                        drawPlayerTiles();
+                        drawDealerTiles();
 
                     }
                     // drawTileBack(50,50);
@@ -178,6 +205,7 @@
 			game['selectedTiles'] = [];
 			game['selectionLocked'] = false;
             game['lastConfirmedSelection'] = []; //the last verified valid selection, is used if the player ends selection phase unlocked
+            game['dealerTiles'] = [];
 
 			var updateGameInfo = function(){
                 //Prints seconds remaining, game state, etc
@@ -200,6 +228,7 @@
                 game. selectedTiles = [];
                 game.selectionLocked = false;
                 game.lastConfirmedSelection = [];
+                game.dealerTiles = [];
                 resetTileDivs();
             }
 
@@ -309,6 +338,9 @@
     			});
     			socket.on('other player tiles',function(id,tiles,pair){
     				$("#messages").prepend("<li>Player \'"+id+"\' dealt tile "+tiles+" and selected pair "+pair+"</li>");
+                    if(id == 'dealer'){
+                        game.dealerTiles = tiles;
+                    }
     			});
     			socket.on('confirm selection locked',function(pair){
                     game.lastConfirmedSelection = pair;
@@ -447,6 +479,7 @@
     				}
     			});
 
+                //Listener for the canvas
                 $("#game").click(function(e){
                     var x = Math.floor((e.pageX-$("#game").offset().left));
                     var y = Math.floor((e.pageY-$("#game").offset().top));
