@@ -473,6 +473,12 @@ setInterval(function(){
 					tables[i].dealerTiles.push(tables[i].deck.tiles[count]);
 					count+=1;
 				}
+				// Set default selection
+				for(var k = 0; k < 7; k++){
+					if(tables[i].seats[k] != null){
+						tables[i].seats[k].tileSelection = [tables[i].seats[k].tiles[0],tables[i].seats[k].tiles[1]];
+					}
+				}
 			}
 			else if(tables[i].state == 'tile reveal'){
 				for(var j = 0; j < 7; j++){

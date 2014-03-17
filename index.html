@@ -143,6 +143,28 @@
                     ctx.fillText("Dealer wager: "+game.minimumBet,c.width/2,200);
                 }
 
+                //takes a pair and highlights those tiles
+                var highlightTiles = function(pair){
+
+                    for(var i = 0; i < game.tiles.length; i++){
+                        if(pair.indexOf(game.tiles[i]) != -1){
+                            //tile is selected
+                            ctx.fillRect(seatTileLocations[i][0]+25,seatTileLocations[i][1]-25,10,10);
+                        }
+                    }
+                }
+
+                // highlights the current selection (Not confirmed by server)
+                var highlightSelection = function(){
+                    ctx.fillStyle = "#FFFF00"; //yellow
+                    for(var i = 0; i < game.tiles.length; i++){
+                        if(game.selectedTiles.indexOf(game.tiles[i]) != -1){
+                            //tile is selected
+                            ctx.fillRect(seatTileLocations[i][0]+25,seatTileLocations[i][1]-25,10,10);
+                        }
+                    }   
+                }
+
                 render = function(){
                     
                     //Fill background
@@ -164,12 +186,13 @@
                     ctx.fillText("Wallet: "+game.wallet,0,c.height);
 
                     // highlight pair selection
-                    for(var i = 0; i < 4; i++){
-                        if(game.clickedTiles.indexOf(i) != -1){
-                            ctx.fillStyle = "#FFFF00";
-                            ctx.fillRect(seatTileLocations[i][0]+25,seatTileLocations[i][1]-25,10,10);
-                        }
-                    }
+                    // for(var i = 0; i < 4; i++){
+                    //     if(game.clickedTiles.indexOf(i) != -1){
+                    //         ctx.fillStyle = "#FFFF00";
+                    //         ctx.fillRect(seatTileLocations[i][0]+25,seatTileLocations[i][1]-25,10,10);
+                    //     }
+                    // }
+                    highlightSelection();
 
 
                     if(game.banker == -1){
@@ -250,7 +273,7 @@
                 game.bet = game.minimumBet;
                 game.betsLocked = false;
                 game.tiles = [];
-                game. selectedTiles = [];
+                game.selectedTiles = [];
                 game.selectionLocked = false;
                 game.lastConfirmedSelection = [];
                 game.dealerTiles = [];
@@ -264,20 +287,6 @@
                     divs.eq(i).empty();
                     divs.eq(i).removeClass('tileSelected').addClass('tile');
                 }
-            }
-
-            //takes a pair and highlights those tiles
-            var highlightTiles = function(pair){
-                // var divs = $('#one, #two, #three, #four');
-
-                // for(var i = 0; i < game.tiles.length; i++){
-                //     if(pair.indexOf(game.tiles[i]) == -1){
-                //         divs[i].className = 'tile';
-                //     }
-                //     else{
-                //         divs[i].className = 'tileSelected';
-                //     }
-                // }
             }
 
 			$(function(){	//document is ready
@@ -341,28 +350,30 @@
                     $("#messages").prepend("<li>Server confirms pair selection: "+pair+"</li>");
                     game.lastConfirmedSelection = pair;
                     //on the confirmation, change the highlighted tiles
-                    highlightTiles(pair);
+                    // highlightTiles(pair);
                 });
 
                 socket.on('finalize tile selection',function(pair){
                     $("#messages").prepend("<li>Server finalizes pair selection: "+pair+"</li>");
-                    highlightTiles(pair);
+                    game.lastConfirmedSelection = pair;
+                    game.selectedTiles = pair;
+                    // highlightTiles(pair);
                 });
 
     			socket.on('player dealt',function(tile){
     				game.tiles.push(tile);
-    				if(game.tiles.length == 1){
-    					$("#one").html("id: "+tile+"<br>dots: "+dots[tile]+"<br>name: "+tileNames[tile]+"<br>rank: "+ranks[tile]);
-    				}
-    				if(game.tiles.length == 2){
-    					$("#two").html("id: "+tile+"<br>dots: "+dots[tile]+"<br>name: "+tileNames[tile]+"<br>rank: "+ranks[tile]);
-    				}
-    				if(game.tiles.length == 3){
-    					$("#three").html("id: "+tile+"<br>dots: "+dots[tile]+"<br>name: "+tileNames[tile]+"<br>rank: "+ranks[tile]);
-    				}
-    				if(game.tiles.length == 4){
-    					$("#four").html("id: "+tile+"<br>dots: "+dots[tile]+"<br>name: "+tileNames[tile]+"<br>rank: "+ranks[tile]);
-    				}
+    				// if(game.tiles.length == 1){
+    				// 	$("#one").html("id: "+tile+"<br>dots: "+dots[tile]+"<br>name: "+tileNames[tile]+"<br>rank: "+ranks[tile]);
+    				// }
+    				// if(game.tiles.length == 2){
+    				// 	$("#two").html("id: "+tile+"<br>dots: "+dots[tile]+"<br>name: "+tileNames[tile]+"<br>rank: "+ranks[tile]);
+    				// }
+    				// if(game.tiles.length == 3){
+    				// 	$("#three").html("id: "+tile+"<br>dots: "+dots[tile]+"<br>name: "+tileNames[tile]+"<br>rank: "+ranks[tile]);
+    				// }
+    				// if(game.tiles.length == 4){
+    				// 	$("#four").html("id: "+tile+"<br>dots: "+dots[tile]+"<br>name: "+tileNames[tile]+"<br>rank: "+ranks[tile]);
+    				// }
     				$("#messages").prepend("<li>Player dealt tile "+tile+"</li>");
     			});
     			socket.on('other player tiles',function(id,tiles,pair){
@@ -393,6 +404,7 @@
                         $("#messages").prepend("<li>Opponent win</li>");
                     }
                 });
+                // Information about the game from the server
                 socket.on('pregame game information',function(banker){
                     game.banker = banker;
                 });
@@ -517,8 +529,8 @@
                     // Bet 5
                     if(x>bet5ButtonInfo[0] && x<bet5ButtonInfo[0]+bet5ButtonInfo[2] && y>bet5ButtonInfo[1] && y < bet5ButtonInfo[1]+bet5ButtonInfo[3]){
                         //the bet 5 button has been clicked
-                        if(game.betsLocked || game.state != "betting"){
-
+                        if(game.betsLocked || game.state != "betting" || game.banker != -1){
+                            //do nothing
                         }
                         else if(game.wallet >= game.bet+5){
                             game.bet = game.bet+5;
@@ -528,7 +540,7 @@
 
                     // Bet lock button
                     if(x>betLockButtonInfo[0] && x<betLockButtonInfo[0]+betLockButtonInfo[2] && y>betLockButtonInfo[1] && y < betLockButtonInfo[1]+betLockButtonInfo[3]){
-                        if(game.state == "betting"){
+                        if(game.state == "betting" && game.banker == -1){
                             console.log(game.betsLocked);
                             if(!game.betsLocked){
                                 socket.emit("bet locked",game.bet);
@@ -560,22 +572,26 @@
                         }
                     }
 
+                    // Clicking on tiles
                     for(var i = 0; i < 4; i++){
                         if(x>seatTileLocations[i][0] && x<seatTileLocations[i][0]+tileWidth/2 && y>seatTileLocations[i][1] && y < seatTileLocations[i][1]+tileHeight/2){
                             console.log("clicked on "+i);
                             if(game.state == "pair selection" && !game.selectionLocked){
+                                // Tile i was clicked on and its state should flip
                                 if(game.clickedTiles.indexOf(i) != -1){
+                                    // It was previously selected, and should be unselected
                                     var index = game.clickedTiles.indexOf(i);
                                     game.clickedTiles.splice(index,1);
-                                    var index = game.clickedTiles.indexOf(game.tiles[i]);
+                                    var index = game.selectedTiles.indexOf(game.tiles[i]);
                                     game.selectedTiles.splice(index,1);
                                 }
                                 else{
+                                    // Select tile i
                                     game.selectedTiles.push(game.tiles[i]);
                                     game.clickedTiles.push(i);
                                 }
-                                console.log(game.clickedTiles);
-                                console.log(game.selectedTiles);
+                                // console.log(game.clickedTiles);
+                                // console.log(game.selectedTiles);
                             }
                         }
                     }
