@@ -19,6 +19,7 @@
             var tileHeight = 150;
             var bet5ButtonInfo = [50,500,50,25];
             var betLockButtonInfo = [50,400,50,25];
+            var selectionLockButtonInfo = [50,450,50,25];
 
             $(function(){
 
@@ -100,6 +101,19 @@
                     ctx.fillRect(bet5ButtonInfo[0],bet5ButtonInfo[1],bet5ButtonInfo[2],bet5ButtonInfo[3]);
                 }
 
+                drawSelectionLockButtons = function(){
+                    ctx.fillStyle = "#000000";
+                    ctx.fillRect(selectionLockButtonInfo[0],selectionLockButtonInfo[1],selectionLockButtonInfo[2],selectionLockButtonInfo[3]);
+                    if(game.selectionLocked){
+                        ctx.fillStyle = "#FF0000";
+                        ctx.fillText("LOCKED",selectionLockButtonInfo[0],selectionLockButtonInfo[1]);
+                    }
+                    else{
+                        ctx.fillStyle = "#006600";
+                        ctx.fillText("UNLOCKED",selectionLockButtonInfo[0],selectionLockButtonInfo[1]);
+                    }
+                }
+
                 drawBetLockButton = function(){
                     ctx.fillStyle = "#000000";
                     ctx.fillRect(betLockButtonInfo[0],betLockButtonInfo[1],betLockButtonInfo[2],betLockButtonInfo[3]);
@@ -138,6 +152,9 @@
 
                     drawBetLockButton();
 
+                    ctx.fillStyle = "#000000";
+                    ctx.fillText("Wallet: "+game.wallet,0,c.height);
+
 
                     if(game.banker == -1){
                         drawBankerSymbol(500,30);
@@ -165,6 +182,7 @@
                     // drawTileBack(50,50);
                     drawWagers();
                     drawBettingButtons();
+                    drawSelectionLockButtons();
                 }
 
                 setInterval(function(){
@@ -269,6 +287,8 @@
     			socket.on('bet unlock confirm',function(){
     				$("#messages").prepend("<li>Server confirms bet unlock.</li>");
     			});
+
+                // Handle state changes
     			socket.on('game state change',function(state,time){
     				game.state = state;
     				if(state == "dealing" && !game.betsLocked){
@@ -279,6 +299,7 @@
     					game.bet = game.minimumBet;
     				}
     				if(state == "tile reveal"){
+                        game.selectionLocked = true;
     					if(game.selectedTiles.length != 2 && game.selectionLocked == false){
                             if(game.lastConfirmedSelection.length == 2){
                                 //the user had perviously locked with a valid selection, reapply this selection
@@ -484,6 +505,8 @@
                     var x = Math.floor((e.pageX-$("#game").offset().left));
                     var y = Math.floor((e.pageY-$("#game").offset().top));
                     console.log(x+" "+y);
+
+                    // Bet 5
                     if(x>bet5ButtonInfo[0] && x<bet5ButtonInfo[0]+bet5ButtonInfo[2] && y>bet5ButtonInfo[1] && y < bet5ButtonInfo[1]+bet5ButtonInfo[3]){
                         //the bet 5 button has been clicked
                         if(game.betsLocked || game.state != "betting"){
@@ -495,11 +518,11 @@
                         updateGameInfo();
                     }
 
+                    // Bet lock button
                     if(x>betLockButtonInfo[0] && x<betLockButtonInfo[0]+betLockButtonInfo[2] && y>betLockButtonInfo[1] && y < betLockButtonInfo[1]+betLockButtonInfo[3]){
                         if(game.state == "betting"){
                             console.log(game.betsLocked);
                             if(!game.betsLocked){
-                                console.log("test");
                                 socket.emit("bet locked",game.bet);
                                 game.betsLocked = true;
                             }
@@ -509,6 +532,27 @@
                             }
                         }
                     }
+
+                    // Pair lock button
+                   if(x>selectionLockButtonInfo[0] && x<selectionLockButtonInfo[0]+selectionLockButtonInfo[2] && y>selectionLockButtonInfo[1] && y < selectionLockButtonInfo[1]+selectionLockButtonInfo[3]){
+                        console.log("Get clicked");
+                        if(game.state == "pair selection"){
+                            if(!game.selectionLocked){
+                                if(game.state == "pair selection" && game.selectedTiles.length == 2 && !game.selectionLocked){
+                                    game.selectionLocked = true;
+                                    socket.emit('pair selection locked',game.selectedTiles);
+                                }
+                            }
+                            else{
+                                if(game.state == "pair selection" && game.selectionLocked){
+                                    game.selectionLocked = false;
+                                    socket.emit('pair selection unlocked');
+                                }
+                            }
+                        }
+                    }
+
+
                 });
 			});
 

@@ -296,7 +296,6 @@ var addPlayer = function(table,player){
 	table.seats[table.seats.indexOf(null)] = player; //place player in first available seat
 }
 
-
 var app = http.createServer(function(req,res){
 	var request = url.parse(req.url,true);
 	var action = request.pathname;
