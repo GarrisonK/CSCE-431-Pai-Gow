@@ -21,6 +21,14 @@
             var betLockButtonInfo = [50,400,50,25];
             var selectionLockButtonInfo = [50,450,50,25];
 
+            var tileLocations = [[665,545],[750,545],[98,72],[182,72],[286,72],[370,72],[478,74],[562,74],[666,74],[750,74],[97,229],[181,229],[285,229],[369,229],[477,231],[561,231],[655,231],[749,231],[96,386],[180,386],[284,386],[368,386],[476,388],[560,388],[664,388],[748,388],[96,543],[180,543],[284,543],[368,543],[476,545],[560,545]];
+
+            var dealerTileLocations = [[400,90],[400+1*(tileWidth/2+5),90],[400+2*(tileWidth/2+5),90],[400+3*(tileWidth/2+5),90]];
+            var seatTileLocations = [[400,450],[400+1*(tileWidth/2+5),450],[400+2*(tileWidth/2+5),450],[400+3*(tileWidth/2+5),450]];
+
+            var tileX = 75;
+            var tileY = 150;
+
             $(function(){
 
                 paper.setup('game');
@@ -155,6 +163,14 @@
                     ctx.fillStyle = "#000000";
                     ctx.fillText("Wallet: "+game.wallet,0,c.height);
 
+                    // highlight pair selection
+                    for(var i = 0; i < 4; i++){
+                        if(game.clickedTiles.indexOf(i) != -1){
+                            ctx.fillStyle = "#FFFF00";
+                            ctx.fillRect(seatTileLocations[i][0]+25,seatTileLocations[i][1]-25,10,10);
+                        }
+                    }
+
 
                     if(game.banker == -1){
                         drawBankerSymbol(500,30);
@@ -190,16 +206,6 @@
                 },100)
                 // paper.view.draw();
             });
-            
-
-            var tileLocations = [[665,545],[750,545],[98,72],[182,72],[286,72],[370,72],[478,74],[562,74],[666,74],[750,74],[97,229],[181,229],[285,229],[369,229],[477,231],[561,231],[655,231],[749,231],[96,386],[180,386],[284,386],[368,386],[476,388],[560,388],[664,388],[748,388],[96,543],[180,543],[284,543],[368,543],[476,545],[560,545]];
-
-            var dealerTileLocations = [[400,90],[400+1*(tileWidth/2+5),90],[400+2*(tileWidth/2+5),90],[400+3*(tileWidth/2+5),90]];
-            var seatTileLocations = [[400,450],[400+1*(tileWidth/2+5),450],[400+2*(tileWidth/2+5),450],[400+3*(tileWidth/2+5),450]];
-
-            var tileX = 75;
-            var tileY = 150;
-            
 
 			var dots = [3,6,12,12,2,2,8,8,4,4,10,10,6,6,4,4,11,11,10,10,7,7,6,6,9,9,8,8,7,7,5,5];
 			var tileNames = ["Gee Joon","Gee Joon","Teen","Teen","Day","Day","Yun","Yun","Gor","Gor","Mooy","Mooy","Chong","Chong","Bon","Bon","Foo","Foo","Ping","Ping","Tit","Tit","Look","Look","Chop Gow","Chop Gow","Chop Bot","Chop Bot","Chop Chit","Chot Chit","Chop Ng","Chop Ng"];
@@ -222,6 +228,7 @@
 			game['tiles'] = [];
 			game['selectedTiles'] = [];
 			game['selectionLocked'] = false;
+            game['clickedTiles'] = [];  //Contains the index 0-3 of the tile that was clicked
             game['lastConfirmedSelection'] = []; //the last verified valid selection, is used if the player ends selection phase unlocked
             game['dealerTiles'] = [];
 
@@ -247,7 +254,8 @@
                 game.selectionLocked = false;
                 game.lastConfirmedSelection = [];
                 game.dealerTiles = [];
-                resetTileDivs();
+                // resetTileDivs();
+                game.clickedTiles = [];
             }
 
             function resetTileDivs(){
@@ -260,16 +268,16 @@
 
             //takes a pair and highlights those tiles
             var highlightTiles = function(pair){
-                var divs = $('#one, #two, #three, #four');
+                // var divs = $('#one, #two, #three, #four');
 
-                for(var i = 0; i < game.tiles.length; i++){
-                    if(pair.indexOf(game.tiles[i]) == -1){
-                        divs[i].className = 'tile';
-                    }
-                    else{
-                        divs[i].className = 'tileSelected';
-                    }
-                }
+                // for(var i = 0; i < game.tiles.length; i++){
+                //     if(pair.indexOf(game.tiles[i]) == -1){
+                //         divs[i].className = 'tile';
+                //     }
+                //     else{
+                //         divs[i].className = 'tileSelected';
+                //     }
+                // }
             }
 
 			$(function(){	//document is ready
@@ -548,6 +556,26 @@
                                     game.selectionLocked = false;
                                     socket.emit('pair selection unlocked');
                                 }
+                            }
+                        }
+                    }
+
+                    for(var i = 0; i < 4; i++){
+                        if(x>seatTileLocations[i][0] && x<seatTileLocations[i][0]+tileWidth/2 && y>seatTileLocations[i][1] && y < seatTileLocations[i][1]+tileHeight/2){
+                            console.log("clicked on "+i);
+                            if(game.state == "pair selection" && !game.selectionLocked){
+                                if(game.clickedTiles.indexOf(i) != -1){
+                                    var index = game.clickedTiles.indexOf(i);
+                                    game.clickedTiles.splice(index,1);
+                                    var index = game.clickedTiles.indexOf(game.tiles[i]);
+                                    game.selectedTiles.splice(index,1);
+                                }
+                                else{
+                                    game.selectedTiles.push(game.tiles[i]);
+                                    game.clickedTiles.push(i);
+                                }
+                                console.log(game.clickedTiles);
+                                console.log(game.selectedTiles);
                             }
                         }
                     }
