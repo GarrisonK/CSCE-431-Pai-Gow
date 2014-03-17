@@ -274,6 +274,7 @@ var newPlayer = function(name,id,socket,minimumBet){
 	this.tiles = [];
 	this.tileSelection = [];
 	this.selectionLocked = false;
+	this.bankOnTurn = true;
 }
 
 var newTable = function(){
@@ -436,6 +437,19 @@ io.sockets.on('connection',function(socket){
 		}
 	});
 
+	socket.on('bank on turn',function(selection){
+		for(var i = 0; i < tables.length; i++){
+			for(var j = 0; j < 7; j++){
+				if(tables[i].seats[j] != null){
+					if(tables[i].seats[j].id == socket.id){
+						tables[i].seats[j].bankOnTurn = selection;
+						break;
+					}
+				}
+			}
+		}
+	});
+
 });
 
 setInterval(function(){
@@ -566,7 +580,8 @@ setInterval(function(){
 				tables[i].shuffle();
 				tables[i].dealerTiles = [];
 				tables[i].dealerSelection = [];
-				//TODO update banker
+
+				// find the next willing banker
 				while(true){
 					tables[i].banker += 1;
 					if(tables[i].banker == 7){
@@ -574,6 +589,9 @@ setInterval(function(){
 					}
 					if(tables[i].banker != -1 && tables[i].seats[tables[i].banker] == null){
 						//continue looking for next banker
+					}
+					else if(tables[i].seats[tables[i].banker] != null && tables[i].seats[tables[i].banker].bankOnTurn == false){
+						//this player doesn't want to bank
 					}
 					else{
 						//found a player to be the next banker
