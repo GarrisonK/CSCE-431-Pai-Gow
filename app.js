@@ -338,6 +338,7 @@ io.sockets.on('connection',function(socket){
 		console.log("disconnect "+player.name);
 
 		//find the table that player is at, remove him from the seat, and remove that table
+		// TODO: update for multiple players
 		for(var i = 0; i < tables.length; i++){
 			for(var j = 0; j < tables.length; j++){
 				if(tables[i].seats[j].id == player.id){
@@ -580,6 +581,19 @@ setInterval(function(){
 				tables[i].shuffle();
 				tables[i].dealerTiles = [];
 				tables[i].dealerSelection = [];
+
+				//Kick players without sufficient money
+				for(var j = 0; j < tables[i].seats.length; j++){
+					if(tables[i].seats[j] != null){
+						if(tables[i].seats[j].wallet < tables[i].minimumBet){
+							//This player doesn't have enough money to play
+							tables[i].seats[j].socket.emit('insufficient funds');
+							tables[i].seats[j] = null;
+						}
+					}
+				}
+
+				// TODO: handle if a player doesn't have enough money to be banker (how much money is that?)
 
 				// find the next willing banker
 				while(true){
