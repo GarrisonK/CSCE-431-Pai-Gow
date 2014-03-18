@@ -189,8 +189,117 @@ function getOtherPair(tiles, selection) {
 }
 
 function getBestPairSelection(tiles) {
-    //will return a pair of values
-    //TODO fully implement, currently just returns default split
+    //will return a pair of values 
+    //TODO Write better code
+
+    if(isPair(tiles[0],tiles[1])){
+        return [tiles[0],tiles[1]];
+    }
+    if(isPair(tiles[0],tiles[2])){
+        return [tiles[0],tiles[2]];
+    }
+    if(isPair(tiles[0],tiles[3])){
+        return [tiles[0],tiles[3]];
+    }
+    if(isPair(tiles[1],tiles[2])){
+        return [tiles[1],tiles[2]];
+    }
+    if(isPair(tiles[1],tiles[3])){
+        return [tiles[1],tiles[3]];
+    }
+    if(isPair(tiles[2],tiles[3])){
+        return [tiles[2],tiles[3]];
+    }
+
+    if(isWong(tiles[0],tiles[1])){
+        return [tiles[0],tiles[1]];
+    }
+    if(isWong(tiles[0],tiles[2])){
+        return [tiles[0],tiles[2]];
+    }
+    if(isWong(tiles[0],tiles[3])){
+        return [tiles[0],tiles[3]];
+    }
+    if(isWong(tiles[1],tiles[2])){
+        return [tiles[1],tiles[2]];
+    }
+    if(isWong(tiles[1],tiles[3])){
+        return [tiles[1],tiles[3]];
+    }
+    if(isWong(tiles[2],tiles[3])){
+        return [tiles[2],tiles[3]];
+    }
+
+    if(isGong(tiles[0],tiles[1])){
+        return [tiles[0],tiles[1]];
+    }
+    if(isGong(tiles[0],tiles[2])){
+        return [tiles[0],tiles[2]];
+    }
+    if(isGong(tiles[0],tiles[3])){
+        return [tiles[0],tiles[3]];
+    }
+    if(isGong(tiles[1],tiles[2])){
+        return [tiles[1],tiles[2]];
+    }
+    if(isGong(tiles[1],tiles[3])){
+        return [tiles[1],tiles[3]];
+    }
+    if(isGong(tiles[2],tiles[3])){
+        return [tiles[2],tiles[3]];
+    }
+
+    var p1 = getNonPairValue(tiles[0],tiles[1]);
+    var p2 = getNonPairValue(tiles[0],tiles[2]);
+    var p3 = getNonPairValue(tiles[0],tiles[3]);
+    var p4 = getNonPairValue(tiles[1],tiles[2]);
+    var p5 = getNonPairValue(tiles[1],tiles[3]);
+    var p6 = getNonPairValue(tiles[2],tiles[3]);
+
+    if(p1 >= p2 && p1 >= p3 && p1 >= p4 && p1 >= p5 && p1 >= p6){
+        return [tiles[0],tiles[1]];
+    }
+    if(p2 >= p1 && p2 >= p3 && p2 >= p4 && p2 >= p5 && p2 >= p6){
+        return [tiles[0],tiles[2]];
+    }
+    if(p3 >= p2 && p3 >= p1 && p3 >= p4 && p3 >= p5 && p3 >= p6){
+        return [tiles[0],tiles[3]];
+    }
+    if(p4 >= p2 && p4 >= p3 && p4 >= p1 && p4 >= p5 && p4 >= p6){
+        return [tiles[1],tiles[2]];
+    }
+    if(p5 >= p2 && p5 >= p3 && p5 >= p4 && p5 >= p1 && p5 >= p6){
+        return [tiles[1],tiles[3]];
+    }
+    if(p6 >= p2 && p6 >= p3 && p6 >= p4 && p6 >= p5 && p6 >= p1){
+        return [tiles[2],tiles[3]];
+    }
+
+    var p1 = getHighestRank(tiles[0],tiles[1]);
+    var p2 = getHighestRank(tiles[0],tiles[2]);
+    var p3 = getHighestRank(tiles[0],tiles[3]);
+    var p4 = getHighestRank(tiles[1],tiles[2]);
+    var p5 = getHighestRank(tiles[1],tiles[3]);
+    var p6 = getHighestRank(tiles[2],tiles[3]);
+
+    if(p1 >= p2 && p1 >= p3 && p1 >= p4 && p1 >= p5 && p1 >= p6){
+        return [tiles[0],tiles[1]];
+    }
+    if(p2 >= p1 && p2 >= p3 && p2 >= p4 && p2 >= p5 && p2 >= p6){
+        return [tiles[0],tiles[2]];
+    }
+    if(p3 >= p2 && p3 >= p1 && p3 >= p4 && p3 >= p5 && p3 >= p6){
+        return [tiles[0],tiles[3]];
+    }
+    if(p4 >= p2 && p4 >= p3 && p4 >= p1 && p4 >= p5 && p4 >= p6){
+        return [tiles[1],tiles[2]];
+    }
+    if(p5 >= p2 && p5 >= p3 && p5 >= p4 && p5 >= p1 && p5 >= p6){
+        return [tiles[1],tiles[3]];
+    }
+    if(p6 >= p2 && p6 >= p3 && p6 >= p4 && p6 >= p5 && p6 >= p1){
+        return [tiles[2],tiles[3]];
+    }
     return [tiles[0], tiles[1]];
 }
 
