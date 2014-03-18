@@ -15,6 +15,383 @@
 
             paper.install(window);
 
+
+
+
+            //Pai Gow tile infomation code
+            var dots = [3,6,12,12,2,2,8,8,4,4,10,10,6,6,4,4,11,11,10,10,7,7,6,6,9,9,8,8,7,7,5,5];
+            var tileNames = ["Gee Joon","Gee Joon","Teen","Teen","Day","Day","Yun","Yun","Gor","Gor","Mooy","Mooy","Chong","Chong","Bon","Bon","Foo","Foo","Ping","Ping","Tit","Tit","Look","Look","Chop Gow","Chop Gow","Chop Bot","Chop Bot","Chop Chit","Chot Chit","Chop Ng","Chop Ng"];
+            var ranks = [1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9,10,10,11,11,12,12,13,13,14,14,15,15,16,16];
+
+
+            //code used for finding the winner of a round
+
+            function getNumDots(id){
+                return dots[id];
+            }
+
+            function getRank(id){
+                return ranks[id];
+            }
+
+            function getNonPairValue(id1, id2){
+                //returns 0-9 representing value, or -1 if the ids form a pair
+                //If one of the tiles is the Gee Joon, returns the better of the two possible values.
+                if(isPair(id1,id2)){
+                    return -1;
+                }
+                else{
+                    if(getRank(id1) == 1){
+                        var val1 = 3+getNumDots(id2);
+                        var val2 = 6+getNumDots(id2);
+                        if(val1%10 > val2%10){
+                            return val1%10;
+                        }
+                        return val2%10;
+                    }
+                    else if(getRank(id2) == 1){
+                        var val1 = 3+getNumDots(id1);
+                        var val2 = 6+getNumDots(id1);
+                        if(val1%10 > val2%10){
+                            return val1%10;
+                        }
+                        return val2%10;
+                    }
+                    else{
+                        var val = getNumDots(id1)+getNumDots(id2);
+                        return val%10;
+                    }
+                }
+            }
+
+            function isPair(id1, id2){
+                if(getRank(id1) == getRank(id2)){
+                    return true;
+                }
+                return false;
+            }
+
+            function isWong(id1, id2){
+                if(getRank(id1) == 2 && getNumDots(id2) == 9){
+                    return true;
+                }
+                if(getRank(id1) == 3 && getNumDots(id2) == 9){
+                    return true;
+                }
+                if(getRank(id2) == 2 && getNumDots(id1) == 9){
+                    return true;
+                }
+                if(getRank(id2) == 3 && getNumDots(id1) == 9){
+                    return true;
+                }
+                return false;
+            }
+
+            function isGong(id1, id2){
+                if(getRank(id1) == 2 && getNumDots(id2) == 8){
+                    return true;
+                }
+                if(getRank(id1) == 3 && getNumDots(id2) == 8){
+                    return true;
+                }
+                if(getRank(id2) == 2 && getNumDots(id1) == 8){
+                    return true;
+                }
+                if(getRank(id2) == 3 && getNumDots(id1) == 8){
+                    return true;
+                }
+                return false;
+            }
+
+            function getHighestRank(id1, id2){
+                //considers the rule that a Gee Joon outside of a pair is the lowest ranking tile possible for tie breaking
+                if(getRank(id1) == 1){
+                    return getRank(id2);
+                }
+                else if(getRank(id2) == 1){
+                    return getRank(id1);
+                }
+                else if(getRank(id1) < getRank(id2)){
+                    return getRank(id1);
+                }
+                return getRank(id2);
+            }
+
+            function getWinner(id1, id2, id3, id4){
+                //Returns 1 if the first set wins, 2 if the second set wins, or -1 if there is a tie
+
+                if(isPair(id1,id2) && !isPair(id3,id4)){
+                    return 1;
+                }
+                if(!isPair(id1,id2) && isPair(id3,id4)){
+                    return 2;
+                }
+                if(isPair(id1,id2) && isPair(id3,id4)){
+                    if(getRank(id1) < getRank(id3)) return 1;
+                    else return 2;
+                }
+
+                //neither is a pair
+
+                if((isWong(id1,id2) && isWong(id3,id4)) || (isGong(id1,id2) && isGong(id3,id4))){
+                    var highestRank1 = getHighestRank(id1,id2);
+                    var highestRank2 = getHighestRank(id3,id4);
+                    if(highestRank1 < highestRank2){
+                        return 1;
+                    }
+                    else{
+                        return 2;
+                    }
+                }
+                else if(isWong(id1,id2)){
+                    return 1;
+                }
+                else if(isWong(id3,id4)){
+                    return 2;
+                }
+                else if(isGong(id1,id2)){
+                    return 1;
+                }
+                else if(isGong(id3,id4)){
+                    return 2;
+                }
+
+                //Neither is a pair or Wong/Gong
+                var val1 = getNonPairValue(id1,id2);
+                var val2 = getNonPairValue(id3,id4);
+
+                if(val1>val2) return 1;
+                else if(val2>val1) return 2;
+                else{
+                    if(val1 == 0 && val2 == 0) return -1;
+                    var highestRank1 = getHighestRank(id1,id2);
+                    var highestRank2 = getHighestRank(id3,id4);
+
+                    if(highestRank1 < highestRank2){
+                        return 1;
+                    }
+                    else if(highestRank2 < highestRank1){
+                        return 2;
+                    }
+                    else return -1;
+
+
+                }
+            }
+
+            function getOtherPair(tiles,selection){
+                //returns the second pair
+                //ex: tiles = [0,1,2,3], selection = [1,2]
+                //will return [0,3]
+                var pair = [];
+                for(var i = 0; i < tiles.length; i++){
+                    if(selection.indexOf(tiles[i]) == -1){
+                        pair.push(tiles[i]);
+                    }
+                }
+                return pair;
+            }
+
+            function getBestPairSelection(tiles){
+                //will return a pair of values
+                //TODO Write better code
+
+                if(isPair(tiles[0],tiles[1])){
+                    return [tiles[0],tiles[1]];
+                }
+                if(isPair(tiles[0],tiles[2])){
+                    return [tiles[0],tiles[2]];
+                }
+                if(isPair(tiles[0],tiles[3])){
+                    return [tiles[0],tiles[3]];
+                }
+                if(isPair(tiles[1],tiles[2])){
+                    return [tiles[1],tiles[2]];
+                }
+                if(isPair(tiles[1],tiles[3])){
+                    return [tiles[1],tiles[3]];
+                }
+                if(isPair(tiles[2],tiles[3])){
+                    return [tiles[2],tiles[3]];
+                }
+
+                if(isWong(tiles[0],tiles[1])){
+                    return [tiles[0],tiles[1]];
+                }
+                if(isWong(tiles[0],tiles[2])){
+                    return [tiles[0],tiles[2]];
+                }
+                if(isWong(tiles[0],tiles[3])){
+                    return [tiles[0],tiles[3]];
+                }
+                if(isWong(tiles[1],tiles[2])){
+                    return [tiles[1],tiles[2]];
+                }
+                if(isWong(tiles[1],tiles[3])){
+                    return [tiles[1],tiles[3]];
+                }
+                if(isWong(tiles[2],tiles[3])){
+                    return [tiles[2],tiles[3]];
+                }
+
+                if(isGong(tiles[0],tiles[1])){
+                    return [tiles[0],tiles[1]];
+                }
+                if(isGong(tiles[0],tiles[2])){
+                    return [tiles[0],tiles[2]];
+                }
+                if(isGong(tiles[0],tiles[3])){
+                    return [tiles[0],tiles[3]];
+                }
+                if(isGong(tiles[1],tiles[2])){
+                    return [tiles[1],tiles[2]];
+                }
+                if(isGong(tiles[1],tiles[3])){
+                    return [tiles[1],tiles[3]];
+                }
+                if(isGong(tiles[2],tiles[3])){
+                    return [tiles[2],tiles[3]];
+                }
+
+                var p1 = getNonPairValue(tiles[0],tiles[1]);
+                var p2 = getNonPairValue(tiles[0],tiles[2]);
+                var p3 = getNonPairValue(tiles[0],tiles[3]);
+                var p4 = getNonPairValue(tiles[1],tiles[2]);
+                var p5 = getNonPairValue(tiles[1],tiles[3]);
+                var p6 = getNonPairValue(tiles[2],tiles[3]);
+
+                if(p1 >= p2 && p1 >= p3 && p1 >= p4 && p1 >= p5 && p1 >= p6){
+                    return [tiles[0],tiles[1]];
+                }
+                if(p2 >= p1 && p2 >= p3 && p2 >= p4 && p2 >= p5 && p2 >= p6){
+                    return [tiles[0],tiles[2]];
+                }
+                if(p3 >= p2 && p3 >= p1 && p3 >= p4 && p3 >= p5 && p3 >= p6){
+                    return [tiles[0],tiles[3]];
+                }
+                if(p4 >= p2 && p4 >= p3 && p4 >= p1 && p4 >= p5 && p4 >= p6){
+                    return [tiles[1],tiles[2]];
+                }
+                if(p5 >= p2 && p5 >= p3 && p5 >= p4 && p5 >= p1 && p5 >= p6){
+                    return [tiles[1],tiles[3]];
+                }
+                if(p6 >= p2 && p6 >= p3 && p6 >= p4 && p6 >= p5 && p6 >= p1){
+                    return [tiles[2],tiles[3]];
+                }
+
+                var p1 = getHighestRank(tiles[0],tiles[1]);
+                var p2 = getHighestRank(tiles[0],tiles[2]);
+                var p3 = getHighestRank(tiles[0],tiles[3]);
+                var p4 = getHighestRank(tiles[1],tiles[2]);
+                var p5 = getHighestRank(tiles[1],tiles[3]);
+                var p6 = getHighestRank(tiles[2],tiles[3]);
+
+                if(p1 >= p2 && p1 >= p3 && p1 >= p4 && p1 >= p5 && p1 >= p6){
+                    return [tiles[0],tiles[1]];
+                }
+                if(p2 >= p1 && p2 >= p3 && p2 >= p4 && p2 >= p5 && p2 >= p6){
+                    return [tiles[0],tiles[2]];
+                }
+                if(p3 >= p2 && p3 >= p1 && p3 >= p4 && p3 >= p5 && p3 >= p6){
+                    return [tiles[0],tiles[3]];
+                }
+                if(p4 >= p2 && p4 >= p3 && p4 >= p1 && p4 >= p5 && p4 >= p6){
+                    return [tiles[1],tiles[2]];
+                }
+                if(p5 >= p2 && p5 >= p3 && p5 >= p4 && p5 >= p1 && p5 >= p6){
+                    return [tiles[1],tiles[3]];
+                }
+                if(p6 >= p2 && p6 >= p3 && p6 >= p4 && p6 >= p5 && p6 >= p1){
+                    return [tiles[2],tiles[3]];
+                }
+
+
+
+
+
+
+                return [tiles[0],tiles[1]];
+
+            }
+
+            function getRoundWinner(bankerTiles, bankerSelection, opTiles, opSelection){
+                //returns 1 if 1 wins, 2 if 2 wins, -1 if push
+                //tiles1 is assumed to be the banker (winner of ties)
+
+                bankerOther = getOtherPair(bankerTiles,bankerSelection);
+                opOther = getOtherPair(opTiles,opSelection);
+
+                bankerHigh = [];
+                bankerLow = [];
+                opHigh = [];
+                opLow = [];
+
+                if(getWinner(bankerSelection[0],bankerSelection[1],bankerOther[0],bankerOther[1]) == 1){
+                    bankerHigh = bankerSelection;
+                    bankerLow = bankerOther;
+                }
+                else{
+                    bankerHigh = bankerOther;
+                    bankerLow = bankerSelection;
+                }
+
+                if(getWinner(opSelection[0],opSelection[1],opOther[0],opSelection[1]) == 1){
+                    opHigh = opSelection;
+                    opLow = opOther;
+                }
+                else{
+                    opHigh = opOther;
+                    opLow = opSelection;
+                }
+
+                //compare highs
+                var result = 0;
+                var highWinner = getWinner(bankerHigh[0],bankerHigh[1],opHigh[0],opHigh[1]);
+                if(highWinner == 1){
+                    result += 1;
+                }
+                else if(highWinner == 2){
+                    result -= 1;
+                }
+                else{
+                    //tie, banker wins
+                    result += 1;
+                }
+
+                var lowWinner = getWinner(bankerLow[0],bankerLow[1],opLow[0],opLow[1]);
+                if(lowWinner == 1){
+                    result += 1;
+                }
+                else if(lowWinner == 2){
+                    result -= 1;
+                }
+                else{
+                    //tie, banker wins
+                    result +=1;
+                }
+
+                if(result == 2){
+                    //banker wins, return 1
+                    return 1;
+                }
+                else if(result == -2){
+                    //opponent wins, return 2
+                    return 2;
+                }
+                else{
+                    // either 1 or -1, indicating neither player won both matches. Push, return -1
+                    return -1;
+                }
+            }
+
+
+
+
+
+
+
+
+
             var tileWidth = 75;
             var tileHeight = 150;
             var bet5ButtonInfo = [50,500,50,25];
@@ -178,6 +555,103 @@
                     }   
                 }
 
+                var highlightDealerSelection = function(){
+                    ctx.fillStyle = "#FFFF00";
+                    for(var i = 0; i < game.dealerTiles.length; i++){
+                        if(game.dealerSelection.indexOf(game.dealerTiles[i]) != -1){
+                            ctx.fillRect(dealerTileLocations[i][0]+25,dealerTileLocations[i][1]-25,10,10);
+                        }
+                    }
+                }
+
+                var drawTimer = function(){
+                    var d = new Date();
+                    var t = (game.stateChangeTime-(d.getTime()-game.lastStateChange))
+                    t=t/1000;
+                    if(t<0){
+                        t = 0;
+                    }
+
+                    ctx.fillStyle = "#000000";
+                    ctx.fillText(t,1000,50);
+                }
+
+                var drawPlayerPairHelp = function(){
+                    var text = "";
+                    if(game.selectedTiles.length == 2){
+                        if(isPair(game.selectedTiles[0],game.selectedTiles[1])){
+                            text+="Pair";
+                        }
+                        else if(isWong(game.selectedTiles[0],game.selectedTiles[1])){
+                            text+="Wong";
+                        }
+                        else if(isGong(game.selectedTiles[0],game.selectedTiles[1])){
+                            text+="Gong"
+                        }
+                        else{
+                            text+=getNonPairValue(game.selectedTiles[0],game.selectedTiles[1]);
+                        }
+
+                        var other = getOtherPair(game.tiles,game.selectedTiles);
+
+                        text+="/";
+
+                        if(isPair(other[0],other[1])){
+                            text+="Pair";
+                        }
+                        else if(isWong(other[0],other[1])){
+                            text+="Wong";
+                        }
+                        else if(isGong(other[0],other[1])){
+                            text+="Gong"
+                        }
+                        else{
+                            text+=getNonPairValue(other[0],other[1]);
+                        }
+
+                        ctx.fillStyle = "#000000";
+                        ctx.fillText(text,seatTileLocations[1][0],seatTileLocations[1][1]+tileHeight/2+25);
+                    }
+                }
+
+                var drawDealerPairHelp = function(){
+                    var text = "";
+                    if(game.dealerSelection.length == 2){
+                        if(isPair(game.dealerSelection[0],game.dealerSelection[1])){
+                            text+="Pair";
+                        }
+                        else if(isWong(game.dealerSelection[0],game.dealerSelection[1])){
+                            text+="Wong";
+                        }
+                        else if(isGong(game.dealerSelection[0],game.dealerSelection[1])){
+                            text+="Gong"
+                        }
+                        else{
+                            text+=getNonPairValue(game.dealerSelection[0],game.dealerSelection[1]);
+                        }
+
+                        var other = getOtherPair(game.dealerTiles,game.dealerSelection);
+
+                        text+="/";
+
+                        if(isPair(other[0],other[1])){
+                            text+="Pair";
+                        }
+                        else if(isWong(other[0],other[1])){
+                            text+="Wong";
+                        }
+                        else if(isGong(other[0],other[1])){
+                            text+="Gong"
+                        }
+                        else{
+                            text+=getNonPairValue(other[0],other[1]);
+                        }
+
+                        ctx.fillStyle = "#000000";
+                        ctx.fillText(text,dealerTileLocations[3][0],dealerTileLocations[3][1]-25);
+                    }
+                }
+
                 render = function(){
                     
                     //Fill background
@@ -198,14 +672,8 @@
                     ctx.fillStyle = "#000000";
                     ctx.fillText("Wallet: "+game.wallet,0,c.height);
 
-                    // highlight pair selection
-                    // for(var i = 0; i < 4; i++){
-                    //     if(game.clickedTiles.indexOf(i) != -1){
-                    //         ctx.fillStyle = "#FFFF00";
-                    //         ctx.fillRect(seatTileLocations[i][0]+25,seatTileLocations[i][1]-25,10,10);
-                    //     }
-                    // }
                     highlightSelection();
+                    highlightDealerSelection();
 
 
                     if(game.banker == -1){
@@ -216,17 +684,6 @@
                     }
 
                     if(tileReady){
-                        // ctx.drawImage(tileImage,tileLocations[0][0],tileLocations[0][1],tileWidth,tileHeight,100,100,tileWidth/2,tileHeight/2);
-
-                        // drawTile(0,dealerTileLocations[0][0],dealerTileLocations[0][1]);
-                        // drawTile(1,dealerTileLocations[1][0],dealerTileLocations[1][1]);
-                        // drawTile(2,dealerTileLocations[2][0],dealerTileLocations[2][1]);
-
-                        // drawTile(0,seatTileLocations[0][0],seatTileLocations[0][1]);
-                        // drawTile(1,seatTileLocations[1][0],seatTileLocations[1][1]);
-                        // drawTile(2,seatTileLocations[2][0],seatTileLocations[2][1]);
-                        // drawTile(30,seatTileLocations[3][0],seatTileLocations[3][1]);
-
                         drawPlayerTiles();
                         drawDealerTiles();
 
@@ -241,6 +698,10 @@
                         ctx.font = "30px Arial";
                         ctx.fillText("INSUFFICIENT FUNDS",450,350);
                     }
+
+                    drawTimer();
+                    drawPlayerPairHelp();
+                    drawDealerPairHelp();
                 }
 
                 setInterval(function(){
@@ -273,6 +734,7 @@
             game['clickedTiles'] = [];  //Contains the index 0-3 of the tile that was clicked
             game['lastConfirmedSelection'] = []; //the last verified valid selection, is used if the player ends selection phase unlocked
             game['dealerTiles'] = [];
+            game['dealerSelection'] = [];
             game['bankOnTurn'] = true; //whether the player elects to bank or not
             game['playerActive'] = true;
 
@@ -300,6 +762,7 @@
                 game.dealerTiles = [];
                 // resetTileDivs();
                 game.clickedTiles = [];
+                game.dealerSelection = [];
             }
 
             function resetTileDivs(){
@@ -371,37 +834,25 @@
                     $("#messages").prepend("<li>Server confirms pair selection: "+pair+"</li>");
                     game.lastConfirmedSelection = pair;
                     //on the confirmation, change the highlighted tiles
-                    // highlightTiles(pair);
                 });
 
                 socket.on('finalize tile selection',function(pair){
                     $("#messages").prepend("<li>Server finalizes pair selection: "+pair+"</li>");
                     game.lastConfirmedSelection = pair;
                     game.selectedTiles = pair;
-                    // highlightTiles(pair);
                 });
 
     			socket.on('player dealt',function(tile){
     				game.tiles.push(tile);
-    				// if(game.tiles.length == 1){
-    				// 	$("#one").html("id: "+tile+"<br>dots: "+dots[tile]+"<br>name: "+tileNames[tile]+"<br>rank: "+ranks[tile]);
-    				// }
-    				// if(game.tiles.length == 2){
-    				// 	$("#two").html("id: "+tile+"<br>dots: "+dots[tile]+"<br>name: "+tileNames[tile]+"<br>rank: "+ranks[tile]);
-    				// }
-    				// if(game.tiles.length == 3){
-    				// 	$("#three").html("id: "+tile+"<br>dots: "+dots[tile]+"<br>name: "+tileNames[tile]+"<br>rank: "+ranks[tile]);
-    				// }
-    				// if(game.tiles.length == 4){
-    				// 	$("#four").html("id: "+tile+"<br>dots: "+dots[tile]+"<br>name: "+tileNames[tile]+"<br>rank: "+ranks[tile]);
-    				// }
     				$("#messages").prepend("<li>Player dealt tile "+tile+"</li>");
     			});
     			socket.on('other player tiles',function(id,tiles,pair){
     				$("#messages").prepend("<li>Player \'"+id+"\' dealt tile "+tiles+" and selected pair "+pair+"</li>");
                     if(id == 'dealer'){
                         game.dealerTiles = tiles;
+                        game.dealerSelection = pair;
                     }
+                    // TODO add code for different players
     			});
     			socket.on('confirm selection locked',function(pair){
                     game.lastConfirmedSelection = pair;
