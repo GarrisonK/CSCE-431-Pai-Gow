@@ -43,12 +43,12 @@ function getNonPairValue(id1, id2) {
             return val2 % 10;
         }
         else if (getRank(id2) == 1) {
-            var val1 = 3 + getNumDots(id1);
-            var val2 = 6 + getNumDots(id1);
-            if (val1 % 10 > val2 % 10) {
-                return val1 % 10;
+            var val3 = 3 + getNumDots(id1);
+            var val4 = 6 + getNumDots(id1);
+            if (val3 % 10 > val4 % 10) {
+                return val3 % 10;
             }
-            return val2 % 10;
+            return val4 % 10;
         }
         else {
             var val = getNumDots(id1) + getNumDots(id2);
@@ -159,14 +159,14 @@ function getWinner(id1, id2, id3, id4) {
     if (val1 > val2) return 1;
     else if (val2 > val1) return 2;
     else {
-        if (val1 == 0 && val2 == 0) return -1;
-        var highestRank1 = getHighestRank(id1, id2);
-        var highestRank2 = getHighestRank(id3, id4);
+        if (val1 === 0 && val2 === 0) return -1;
+        var highestRank3 = getHighestRank(id1, id2);
+        var highestRank4 = getHighestRank(id3, id4);
 
-        if (highestRank1 < highestRank2) {
+        if (highestRank3 < highestRank4) {
             return 1;
         }
-        else if (highestRank2 < highestRank1) {
+        else if (highestRank4 < highestRank3) {
             return 2;
         }
         else return -1;
@@ -392,7 +392,7 @@ io.sockets.on('connection', function(socket) {
             //in normal play, this code should never run
             for (var i = 0; i < tables.length; i++) {
                 for (var j = 0; j < tables[i].seats.length; j++) {
-                    if (tables[i].seats[j] != null) {
+                    if (tables[i].seats[j] !== null) {
                         if (tables[i].seats[j].id == socket.id) {
                             //found player
                             if (tables[i].seats[j].tileSelection.length == 2) {
@@ -414,26 +414,26 @@ io.sockets.on('connection', function(socket) {
             }
         }
         else {
-            for (var i = 0; i < tables.length; i++) {
-                for (var j = 0; j < 7; j++) {
-                    if (tables[i].seats[j].id == socket.id) {
-                        for (var k = 0; k < pair.length; k++) {
+            for (var x = 0; x < tables.length; x++) {
+                for (var y = 0; y < 7; y++) {
+                    if (tables[x].seats[y].id == socket.id) {
+                        for (var z = 0; z < pair.length; z++) {
                             //check that the player was dealt these tiles
-                            if (tables[i].seats[j].tiles.indexOf(pair[k]) ==
+                            if (tables[x].seats[y].tiles.indexOf(pair[z]) ==
                                 -1) {
                                 //the player does not have access to this tile,
                                 //apply default selection
-                                tables[i].seats[j].tileSelection =
-                                    [tables[i].seats[j].tiles[0],
-                                     tables[i].seats[j].tiles[1]];
+                                tables[x].seats[y].tileSelection =
+                                    [tables[x].seats[y].tiles[0],
+                                     tables[x].seats[y].tiles[1]];
                                 socket.emit('confirm tile selection',
-                                            tables[i].seats[j].tileSelection);
+                                            tables[x].seats[y].tileSelection);
                                 return;
                             }
                         }
                         //at this point, the player has been confirmed to have
                         //been dealt the tiles in pair
-                        tables[i].seats[j].tileSelection = pair;
+                        tables[x].seats[y].tileSelection = pair;
                         break;
                     }
                 }
@@ -446,7 +446,7 @@ io.sockets.on('connection', function(socket) {
         //TODO check if player was dealt these tiles
         for (var i = 0; i < tables.length; i++) {
             for (var j = 0; j < 7; j++) {
-                if (tables[i].seats[j] != null) {
+                if (tables[i].seats[j] !== null) {
                     if (tables[i].seats[j].id == socket.id) {
                         tables[i].seats[j].tileSelection = pair;
                         tables[i].seats[j].selectionLocked = true;
@@ -460,7 +460,7 @@ io.sockets.on('connection', function(socket) {
     socket.on('pair selection unlocked', function() {
         for (var i = 0; i < tables.length; i++) {
             for (var j = 0; j < 7; j++) {
-                if (tables[i].seats[j] != null) {
+                if (tables[i].seats[j] !== null) {
                     if (tables[i].seats[j].id == socket.id) {
                         tables[i].seats[j].selectionLocked = false;
                         socket.emit('confirm selection unlocked');
@@ -473,7 +473,7 @@ io.sockets.on('connection', function(socket) {
     socket.on('bank on turn', function(selection) {
         for (var i = 0; i < tables.length; i++) {
             for (var j = 0; j < 7; j++) {
-                if (tables[i].seats[j] != null) {
+                if (tables[i].seats[j] !== null) {
                     if (tables[i].seats[j].id == socket.id) {
                         tables[i].seats[j].bankOnTurn = selection;
                         break;
@@ -496,7 +496,7 @@ setInterval(function() {
                                           1) % gameStates.length];
             tables[i].timeOfLastStateChange = time;
             for (var j = 0; j < tables.length; j++) {
-                if (tables[i].seats[j] != null) {
+                if (tables[i].seats[j] !== null) {
                     tables[i].seats[j].socket.emit('game state change',
                                                    tables[i].state, time);
                 }
@@ -504,7 +504,7 @@ setInterval(function() {
 
             if (tables[i].state == 'pregame') {
                 for (var j = 0; j < tables[i].seats.length; j++) {
-                    if (tables[i].seats[j] != null) {
+                    if (tables[i].seats[j] !== null) {
                         tables[i].seats[j].socket.emit(
                             'pregame game information', tables[i].banker);
                     }
@@ -514,7 +514,7 @@ setInterval(function() {
                 var count = 0;
                 for (var k = 0; k < 4; k++) { //deal 4 tiles each
                     for (var j = 0; j < 7; j++) {
-                        if (tables[i].seats[j] != null) {
+                        if (tables[i].seats[j] !== null) {
                             tables[i].seats[j].tiles.push(
                                 tables[i].deck.tiles[count]); //deal the tile
                             tables[i].seats[j].socket.emit(
@@ -527,7 +527,7 @@ setInterval(function() {
                 }
                 // Set default selection
                 for (var k = 0; k < 7; k++) {
-                    if (tables[i].seats[k] != null) {
+                    if (tables[i].seats[k] !== null) {
                         tables[i].seats[k].tileSelection =
                             [tables[i].seats[k].tiles[0],
                              tables[i].seats[k].tiles[1]];
@@ -536,7 +536,7 @@ setInterval(function() {
             }
             else if (tables[i].state == 'tile reveal') {
                 for (var j = 0; j < 7; j++) {
-                    if (tables[i].seats[j] != null) {
+                    if (tables[i].seats[j] !== null) {
                         //tell each player their final tile selection
                         tables[i].seats[j].socket.emit(
                             'finalize tile selection',
@@ -545,7 +545,7 @@ setInterval(function() {
                 }
                 //reveal all player's tiles
                 for (var j = 0; j < 7; j++) {
-                    if (tables[i].seats[j] != null) {
+                    if (tables[i].seats[j] !== null) {
                         tables[i].dealerSelection = getBestPairSelection(
                             tables[i].dealerTiles);
                         tables[i].seats[j].socket.emit(
@@ -553,7 +553,7 @@ setInterval(function() {
                             tables[i].dealerTiles,
                             tables[i].dealerSelection);
                         for (var k = 0; k < 7; k++) {
-                            if (tables[i].seats[k] != null) {
+                            if (tables[i].seats[k] !== null) {
                                 tables[i].seats[j].socket.emit(
                                     'other player tiles',
                                     tables[i].seats[k].id,
@@ -572,7 +572,7 @@ setInterval(function() {
                     var bankerLow = getOtherPair(
                         tables[i].dealerTiles, bankerHigh);
                     for (var j = 0; j < tables[i].seats.length; j++) {
-                        if (tables[i].seats[j] != null) {
+                        if (tables[i].seats[j] !== null) {
                             var roundWinner = getRoundWinner(
                                 tables[i].dealerTiles,
                                 tables[i].dealerSelection,
@@ -651,7 +651,7 @@ setInterval(function() {
             else if (tables[i].state == 'endgame') {
                 //reset all game information, shuffle deck
                 for (var j = 0; j < tables[i].seats.length; j++) {
-                    if (tables[i].seats[j] != null) {
+                    if (tables[i].seats[j] !== null) {
                         tables[i].seats[j].tiles = [];
                         tables[i].seats[j].tileSelection = [];
                         tables[i].seats[j].selectionLocked = false;
@@ -663,7 +663,7 @@ setInterval(function() {
 
                 //Kick players without sufficient money
                 for (var j = 0; j < tables[i].seats.length; j++) {
-                    if (tables[i].seats[j] != null) {
+                    if (tables[i].seats[j] !== null) {
                         if (tables[i].seats[j].wallet < tables[i].minimumBet) {
                             //This player doesn't have enough money to play
                             tables[i].seats[j].socket.emit(
@@ -683,12 +683,12 @@ setInterval(function() {
                         tables[i].banker = -1;
                     }
                     if (tables[i].banker != -1 &&
-                        tables[i].seats[tables[i].banker] == null) {
+                        tables[i].seats[tables[i].banker] === null) {
                         //continue looking for next banker
                     }
-                    else if (tables[i].seats[tables[i].banker] !=
+                    else if (tables[i].seats[tables[i].banker] !==
                              null && tables[i].seats[tables[i].
-                                                     banker].bankOnTurn ==
+                                                     banker].bankOnTurn ===
                              false) {
                         //this player doesn't want to bank
                     }
