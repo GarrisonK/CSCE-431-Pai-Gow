@@ -472,10 +472,12 @@ io.sockets.on('connection', function(socket) {
         // TODO: update for multiple players
         for (var i = 0; i < tables.length; i++) {
             for (var j = 0; j < tables.length; j++) {
-                if (tables[i].seats[j].id == player.id) {
-                    tables[i].seats[j] = null;
-                    tables.splice(i, 1);
-                    break;
+                if(tables[i].seats[j] != null){
+                    if (tables[i].seats[j].id == player.id) {
+                        tables[i].seats[j] = null;
+                        tables.splice(i, 1);
+                        break;
+                    }
                 }
             }
         }
@@ -525,25 +527,27 @@ io.sockets.on('connection', function(socket) {
         else {
             for (var i = 0; i < tables.length; i++) {
                 for (var j = 0; j < 7; j++) {
-                    if (tables[i].seats[j].id == socket.id) {
-                        for (var k = 0; k < pair.length; k++) {
-                            //check that the player was dealt these tiles
-                            if (tables[i].seats[j].tiles.indexOf(pair[k]) ==
-                                -1) {
-                                //the player does not have access to this tile,
-                                //apply default selection
-                                tables[i].seats[j].tileSelection =
-                                    [tables[i].seats[j].tiles[0],
-                                     tables[i].seats[j].tiles[1]];
-                                socket.emit('confirm tile selection',
-                                            tables[i].seats[j].tileSelection);
-                                return;
+                    if(tables[i].seats[j].id != null){
+                        if (tables[i].seats[j].id == socket.id) {
+                            for (var k = 0; k < pair.length; k++) {
+                                //check that the player was dealt these tiles
+                                if (tables[i].seats[j].tiles.indexOf(pair[k]) ==
+                                    -1) {
+                                    //the player does not have access to this tile,
+                                    //apply default selection
+                                    tables[i].seats[j].tileSelection =
+                                        [tables[i].seats[j].tiles[0],
+                                         tables[i].seats[j].tiles[1]];
+                                    socket.emit('confirm tile selection',
+                                                tables[i].seats[j].tileSelection);
+                                    return;
+                                }
                             }
+                            //at this point, the player has been confirmed to have
+                            //been dealt the tiles in pair
+                            tables[i].seats[j].tileSelection = pair;
+                            break;
                         }
-                        //at this point, the player has been confirmed to have
-                        //been dealt the tiles in pair
-                        tables[i].seats[j].tileSelection = pair;
-                        break;
                     }
                 }
             }
