@@ -459,10 +459,22 @@ io.sockets.on('connection', function(socket) {
     addPlayer(table, player);
     tables.push(table);
 
+    var seat = -1;
+    for(var i = 0; i < tables.length; i++){
+        for(var j = 0; j < tables[i].seats.length; j++){
+            if(tables[i].seats[j] != null){
+                if(tables[i].seats[j].id == player.id){
+                    seat = j;
+                    break;
+                }
+            }
+        }
+    }
+
 
     var d = new Date();
     socket.emit('connection acknowledgment', player.wallet, player.bet,
-                d.getTime(), table.banker);
+                d.getTime(), table.banker,seat);
 
     socket.on('disconnect', function() {
         console.log('disconnect ' + player.name);
@@ -471,7 +483,7 @@ io.sockets.on('connection', function(socket) {
         //that table
         // TODO: update for multiple players
         for (var i = 0; i < tables.length; i++) {
-            for (var j = 0; j < tables.length; j++) {
+            for (var j = 0; j < tables[i].seats.length; j++) {
                 if(tables[i].seats[j] != null){
                     if (tables[i].seats[j].id == player.id) {
                         tables[i].seats[j] = null;

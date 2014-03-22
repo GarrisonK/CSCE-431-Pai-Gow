@@ -405,7 +405,10 @@
             var tileLocations = [[665,545],[750,545],[98,72],[182,72],[286,72],[370,72],[478,74],[562,74],[666,74],[750,74],[97,229],[181,229],[285,229],[369,229],[477,231],[561,231],[655,231],[749,231],[96,386],[180,386],[284,386],[368,386],[476,388],[560,388],[664,388],[748,388],[96,543],[180,543],[284,543],[368,543],[476,545],[560,545]];
 
             var dealerTileLocations = [[400,90],[400+1*(tileWidth*tileScale+5),90],[400+2*(tileWidth*tileScale+5),90],[400+3*(tileWidth*tileScale+5),90]];
-            var seatTileLocations = [[400,450],[400+1*(tileWidth*tileScale+5),450],[400+2*(tileWidth*tileScale+5),450],[400+3*(tileWidth*tileScale+5),450]];
+            // var seatTileLocations = [[400,450],[400+1*(tileWidth*tileScale+5),450],[400+2*(tileWidth*tileScale+5),450],[400+3*(tileWidth*tileScale+5),450]];
+
+            var seatTileLocations = [[[35,206],[35+1*(tileWidth*tileScale+5),206],[35+2*(tileWidth*tileScale+5),206],[35+3*(tileWidth*tileScale+5),206]
+                ]];
 
             var tileX = 75;
             var tileY = 150;
@@ -451,10 +454,10 @@
 
                 drawPlayerTiles = function(){
                     if(game.state == "dealing" || game.state == "pair selection" || game.state == "tile reveal"){
-                        drawTile(game.tiles[0],seatTileLocations[0][0],seatTileLocations[0][1]);
-                        drawTile(game.tiles[1],seatTileLocations[1][0],seatTileLocations[1][1]);
-                        drawTile(game.tiles[2],seatTileLocations[2][0],seatTileLocations[2][1]);
-                        drawTile(game.tiles[3],seatTileLocations[3][0],seatTileLocations[3][1]);
+                        drawTile(game.tiles[0],seatTileLocations[game.seat][0][0],seatTileLocations[game.seat][0][1]);
+                        drawTile(game.tiles[1],seatTileLocations[game.seat][1][0],seatTileLocations[game.seat][1][1]);
+                        drawTile(game.tiles[2],seatTileLocations[game.seat][2][0],seatTileLocations[game.seat][2][1]);
+                        drawTile(game.tiles[3],seatTileLocations[game.seat][3][0],seatTileLocations[game.seat][3][1]);
                     }
                 }
 
@@ -550,7 +553,7 @@
                     for(var i = 0; i < game.tiles.length; i++){
                         if(pair.indexOf(game.tiles[i]) != -1){
                             //tile is selected
-                            ctx.fillRect(seatTileLocations[i][0]+25,seatTileLocations[i][1]-25,10,10);
+                            ctx.fillRect(seatTileLocations[game.seat][i][0]+25,seatTileLocations[game.seat][i][1]-25,10,10);
                         }
                     }
                 }
@@ -561,7 +564,7 @@
                     for(var i = 0; i < game.tiles.length; i++){
                         if(game.selectedTiles.indexOf(game.tiles[i]) != -1){
                             //tile is selected
-                            ctx.fillRect(seatTileLocations[i][0]+25,seatTileLocations[i][1]-25,10,10);
+                            ctx.fillRect(seatTileLocations[game.seat][i][0]+25,seatTileLocations[game.seat][i][1]-25,10,10);
                         }
                     }   
                 }
@@ -621,7 +624,7 @@
                         }
 
                         ctx.fillStyle = "#000000";
-                        ctx.fillText(text,seatTileLocations[1][0],seatTileLocations[1][1]+tileHeight*tileScale+25);
+                        ctx.fillText(text,seatTileLocations[game.seat][1][0],seatTileLocations[game.seat][1][1]+tileHeight*tileScale+25);
                     }
                 }
 
@@ -749,6 +752,7 @@
             game['dealerSelection'] = [];
             game['bankOnTurn'] = true; //whether the player elects to bank or not
             game['playerActive'] = true;
+            game['seat'] = 0;
 
 			var updateGameInfo = function(){
                 //Prints seconds remaining, game state, etc
@@ -786,11 +790,13 @@
             }
 
 			$(function(){	//document is ready
-				socket.on('connection acknowledgment',function(wallet,bet,time){
+				socket.on('connection acknowledgment',function(wallet,bet,time,banker,seat){
 					game.lastStateChange = time;
 					game.bet = bet;
 					game.minimumBet = bet;
 					game.wallet = wallet;
+                    game.banker = banker;
+                    game.seat = seat;
     				$("#messages").prepend("<li>Got a connection from the server</li>");
     				updateGameInfo();
     			});
@@ -1062,7 +1068,7 @@
 
                     // Clicking on tiles
                     for(var i = 0; i < 4; i++){
-                        if(x>seatTileLocations[i][0] && x<seatTileLocations[i][0]+tileWidth*tileScale && y>seatTileLocations[i][1] && y < seatTileLocations[i][1]+tileHeight*tileScale){
+                        if(x>seatTileLocations[game.seat][i][0] && x<seatTileLocations[game.seat][i][0]+tileWidth*tileScale && y>seatTileLocations[game.seat][i][1] && y < seatTileLocations[game.seat][i][1]+tileHeight*tileScale){
                             console.log("clicked on "+i);
                             if(game.state == "pair selection" && !game.selectionLocked){
                                 // Tile i was clicked on and its state should flip
