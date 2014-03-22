@@ -394,15 +394,18 @@
 
             var tileWidth = 75;
             var tileHeight = 150;
+            var tileScale = .5;
             var bet5ButtonInfo = [50,500,50,25];
             var betLockButtonInfo = [50,400,50,25];
             var selectionLockButtonInfo = [50,450,50,25];
             var bankerSelectionInfo = [1000,500,50,25];
+            var dealerBankerSymbolLocation = [550,25];
+            var bankerSymbolLocations = [[78,156],[117,319],[270,431],[487,459],[718,457],[893,352],[1018,156]];
 
             var tileLocations = [[665,545],[750,545],[98,72],[182,72],[286,72],[370,72],[478,74],[562,74],[666,74],[750,74],[97,229],[181,229],[285,229],[369,229],[477,231],[561,231],[655,231],[749,231],[96,386],[180,386],[284,386],[368,386],[476,388],[560,388],[664,388],[748,388],[96,543],[180,543],[284,543],[368,543],[476,545],[560,545]];
 
-            var dealerTileLocations = [[400,90],[400+1*(tileWidth/2+5),90],[400+2*(tileWidth/2+5),90],[400+3*(tileWidth/2+5),90]];
-            var seatTileLocations = [[400,450],[400+1*(tileWidth/2+5),450],[400+2*(tileWidth/2+5),450],[400+3*(tileWidth/2+5),450]];
+            var dealerTileLocations = [[400,90],[400+1*(tileWidth*tileScale+5),90],[400+2*(tileWidth*tileScale+5),90],[400+3*(tileWidth*tileScale+5),90]];
+            var seatTileLocations = [[400,450],[400+1*(tileWidth*tileScale+5),450],[400+2*(tileWidth*tileScale+5),450],[400+3*(tileWidth*tileScale+5),450]];
 
             var tileX = 75;
             var tileY = 150;
@@ -443,7 +446,7 @@
                 }
 
                 drawTile = function(id,x,y){
-                    ctx.drawImage(tileImage,tileLocations[id][0],tileLocations[id][1],tileWidth,tileHeight,x,y,tileWidth/2,tileHeight/2);
+                    ctx.drawImage(tileImage,tileLocations[id][0],tileLocations[id][1],tileWidth,tileHeight,x,y,tileWidth*tileScale,tileHeight*tileScale);
                 }
 
                 drawPlayerTiles = function(){
@@ -471,10 +474,18 @@
                 }
 
 
-                drawBankerSymbol = function(x,y){
-                    //x,y are the coordinates of the top left corner of the banker symbol
+                drawBankerSymbol = function(){
+                    
+                    //draw the white banker symbol at appropriate location
+                    var position = [0,0];
+                    if(game.banker == -1){
+                        position = dealerBankerSymbolLocation;
+                    }
+                    else{
+                        position = bankerSymbolLocations[0];
+                    }
                     ctx.fillStyle = "#FFFFFF";
-                    ctx.fillRect(x,y,20,20);
+                    ctx.fillRect(position[0],position[1],20,20);
 
                     //also draw the selection box for banking on players turn
                     ctx.fillStyle = "#000000";
@@ -491,7 +502,7 @@
 
                 drawTileBack = function(x,y){
                     ctx.fillStyle = "#000000";
-                    ctx.fillRect(x,y,tileWidth/2,tileHeight/2);
+                    ctx.fillRect(x,y,tileWidth*tileScale,tileHeight*tileScale);
                 }
 
                 drawBettingButtons = function(){
@@ -610,7 +621,7 @@
                         }
 
                         ctx.fillStyle = "#000000";
-                        ctx.fillText(text,seatTileLocations[1][0],seatTileLocations[1][1]+tileHeight/2+25);
+                        ctx.fillText(text,seatTileLocations[1][0],seatTileLocations[1][1]+tileHeight*tileScale+25);
                     }
                 }
 
@@ -675,13 +686,14 @@
                     highlightSelection();
                     highlightDealerSelection();
 
+                    drawBankerSymbol();
 
-                    if(game.banker == -1){
-                        drawBankerSymbol(500,30);
-                    }
-                    else{
-                        drawBankerSymbol(500,550);
-                    }
+                    // if(game.banker == -1){
+                    //     drawBankerSymbol(500,30);
+                    // }
+                    // else{
+                    //     drawBankerSymbol(500,550);
+                    // }
 
                     if(tileReady){
                         drawPlayerTiles();
@@ -1050,7 +1062,7 @@
 
                     // Clicking on tiles
                     for(var i = 0; i < 4; i++){
-                        if(x>seatTileLocations[i][0] && x<seatTileLocations[i][0]+tileWidth/2 && y>seatTileLocations[i][1] && y < seatTileLocations[i][1]+tileHeight/2){
+                        if(x>seatTileLocations[i][0] && x<seatTileLocations[i][0]+tileWidth*tileScale && y>seatTileLocations[i][1] && y < seatTileLocations[i][1]+tileHeight*tileScale){
                             console.log("clicked on "+i);
                             if(game.state == "pair selection" && !game.selectionLocked){
                                 // Tile i was clicked on and its state should flip
