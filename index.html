@@ -407,8 +407,14 @@
             var dealerTileLocations = [[400,90],[400+1*(tileWidth*tileScale+5),90],[400+2*(tileWidth*tileScale+5),90],[400+3*(tileWidth*tileScale+5),90]];
             // var seatTileLocations = [[400,450],[400+1*(tileWidth*tileScale+5),450],[400+2*(tileWidth*tileScale+5),450],[400+3*(tileWidth*tileScale+5),450]];
 
-            var seatTileLocations = [[[35,206],[35+1*(tileWidth*tileScale+5),206],[35+2*(tileWidth*tileScale+5),206],[35+3*(tileWidth*tileScale+5),206]
-                ]];
+            var seatTileLocations = [[[35,206],[35+1*(tileWidth*tileScale+5),206],[35+2*(tileWidth*tileScale+5),206],[35+3*(tileWidth*tileScale+5),206]],
+                [[66,362],[66+1*(tileWidth*tileScale+5),362],[66+2*(tileWidth*tileScale+5),362],[66+3*(tileWidth*tileScale+5),362]],
+                [[198,472],[198+1*(tileWidth*tileScale+5),472],[198+2*(tileWidth*tileScale+5),472],[198+3*(tileWidth*tileScale+5),472]],
+                [[430,500],[430+1*(tileWidth*tileScale+5),500],[430+2*(tileWidth*tileScale+5),500],[430+3*(tileWidth*tileScale+5),500]],
+                [[662,498],[662+1*(tileWidth*tileScale+5),498],[662+2*(tileWidth*tileScale+5),498],[662+3*(tileWidth*tileScale+5),498]],
+                [[844,398],[844+1*(tileWidth*tileScale+5),398],[844+2*(tileWidth*tileScale+5),398],[844+3*(tileWidth*tileScale+5),398]],
+                [[900,214],[900+1*(tileWidth*tileScale+5),214],[900+2*(tileWidth*tileScale+5),214],[900+3*(tileWidth*tileScale+5),214]]
+            ];
 
             var tileX = 75;
             var tileY = 150;
@@ -485,7 +491,7 @@
                         position = dealerBankerSymbolLocation;
                     }
                     else{
-                        position = bankerSymbolLocations[0];
+                        position = bankerSymbolLocations[game.banker];
                     }
                     ctx.fillStyle = "#FFFFFF";
                     ctx.fillRect(position[0],position[1],20,20);

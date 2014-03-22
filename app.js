@@ -424,6 +424,7 @@ var newTable = function() {
 var addPlayer = function(table, player) {
     table.seats[table.seats.indexOf(null)] = player; //place player in first
     //available seat
+
 };
 
 var app = http.createServer(function(req, res) {
@@ -539,7 +540,7 @@ io.sockets.on('connection', function(socket) {
         else {
             for (var i = 0; i < tables.length; i++) {
                 for (var j = 0; j < 7; j++) {
-                    if(tables[i].seats[j].id != null){
+                    if(tables[i].seats[j] != null){
                         if (tables[i].seats[j].id == socket.id) {
                             for (var k = 0; k < pair.length; k++) {
                                 //check that the player was dealt these tiles
@@ -616,12 +617,15 @@ setInterval(function() {
     for (var i = 0; i < tables.length; i++) {
         if (time - tables[i].timeOfLastStateChange > 5000) {
             //this table needs to update
+            console.log("need to update");
             var currentState = tables[i].state;
             tables[i].state = gameStates[(gameStates.indexOf(currentState) +
                                           1) % gameStates.length];
+            console.log("new state: "+tables[i].state);
             tables[i].timeOfLastStateChange = time;
-            for (var j = 0; j < tables.length; j++) {
+            for (var j = 0; j < tables[i].seats.length; j++) {
                 if (tables[i].seats[j] != null) {
+                    console.log("emitting new state");
                     tables[i].seats[j].socket.emit('game state change',
                                                    tables[i].state, time);
                 }
