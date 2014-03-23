@@ -1,8 +1,9 @@
-Setting up Pai Gow
-==================
+Pai Gow Tiles
+=============
 	All commands that are to be entered in a command line will be in quotes.
 
-Steps install Pai Gow:
+## Installation
+
 1. Install the package manager for Node.js packages, npm. This is system dependent.
 ..* "sudo apt-get install npm" for Ubuntu.
 1a. Install curl.
@@ -16,16 +17,15 @@ Steps install Pai Gow:
 5. Change to a directory that you want to have the project source code and run "git clone https://github.com/GarrisonK/CSCE-431-Pai-Gow.git".
 6. Change into the project root directory and run "npm install".
 
----
+## How to run Pai Gow
 
-How to run Pai Gow:
 1. After the installation is complete, run "node app.js".
 2. Go to 'http://localhost:3000/' in your web browser.
 
----
+## Code Testing / Checking
 
-How to run the unit tests and code lint tool:
 1. Run "sudo npm install -g grunt-cli".
-2a. To run a single round of tests/checks, run "grunt".
-2b. To run the tests/checks every time a project file is updated run "grunt watch".
+2. Run Grunt.
+--* To run a single round of tests/checks, run "grunt".
+--* To run the tests/checks every time a project file is updated run "grunt watch".
 
