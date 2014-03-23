@@ -459,11 +459,37 @@
                 }
 
                 drawPlayerTiles = function(){
-                    if(game.state == "dealing" || game.state == "pair selection" || game.state == "tile reveal"){
-                        drawTile(game.tiles[0],seatTileLocations[game.seat][0][0],seatTileLocations[game.seat][0][1]);
-                        drawTile(game.tiles[1],seatTileLocations[game.seat][1][0],seatTileLocations[game.seat][1][1]);
-                        drawTile(game.tiles[2],seatTileLocations[game.seat][2][0],seatTileLocations[game.seat][2][1]);
-                        drawTile(game.tiles[3],seatTileLocations[game.seat][3][0],seatTileLocations[game.seat][3][1]);
+                    // if(game.state == "dealing" || game.state == "pair selection" || game.state == "tile reveal"){
+                    //     drawTile(game.tiles[0],seatTileLocations[game.seat][0][0],seatTileLocations[game.seat][0][1]);
+                    //     drawTile(game.tiles[1],seatTileLocations[game.seat][1][0],seatTileLocations[game.seat][1][1]);
+                    //     drawTile(game.tiles[2],seatTileLocations[game.seat][2][0],seatTileLocations[game.seat][2][1]);
+                    //     drawTile(game.tiles[3],seatTileLocations[game.seat][3][0],seatTileLocations[game.seat][3][1]);
+                    // }
+
+                    //draw all the other player's tiles
+                    // console.log(game.seatsTiles);
+
+                    if(game.state == "dealing" || game.state == "pair selection"){
+                        for(var j = 0; j < 4; j++){
+                            drawTile(game.tiles[j],seatTileLocations[game.seat][j][0],seatTileLocations[game.seat][j][1]);
+                        }
+                        for(var i = 0; i < 7; i++){
+                            if(game.occupiedSeats[i] != 0 && i != game.seat){
+                                for(var j = 0; j < 4; j++){
+                                    drawTileBack(seatTileLocations[i][j][0],seatTileLocations[i][j][1]);
+                                }
+                            }
+                        }
+                    }
+
+                    if(game.state == "tile reveal"){
+                        for(var i = 0; i < 7; i++){
+                            if(game.seatsTiles[i] != null){
+                                for(var j = 0; j < 4; j++){
+                                    drawTile(game.seatsTiles[i][j],seatTileLocations[i][j][0],seatTileLocations[i][j][1]);
+                                }
+                            }
+                        }
                     }
                 }
 
@@ -759,6 +785,9 @@
             game['bankOnTurn'] = true; //whether the player elects to bank or not
             game['playerActive'] = true;
             game['seat'] = 0;
+            game['occupiedSeats'] = [];
+            game['seatsTiles'] = []; //contains the tiles dealt to each seat
+            game['seatsPairs'] = [];
 
 			var updateGameInfo = function(){
                 //Prints seconds remaining, game state, etc
@@ -876,6 +905,16 @@
                         game.dealerTiles = tiles;
                         game.dealerSelection = pair;
                     }
+                    else{
+                        // console.log(game.occupiedSeats);
+                        for(var i = 0; i < 7; i++){
+                            if(game.occupiedSeats[i] == id){
+                                game.seatsTiles[i] = tiles;
+                            }
+                        }
+                    }
+
+                    // console.log(game.seatsTiles);
                     // TODO add code for different players
     			});
     			socket.on('confirm selection locked',function(pair){
@@ -907,6 +946,10 @@
                 // Server informs client that he doesnt have enough money to continue
                 socket.on('insufficient funds',function(){
                     game.playerActive = false;
+                });
+                // Server informs client of a connection or disconnection
+                socket.on('occupied seats',function(occupied){
+                    game.occupiedSeats = occupied;
                 });
 
     			setInterval(function(){

@@ -383,11 +383,14 @@ function getRoundWinner(bankerTiles, bankerSelection, opTiles, opSelection) {
 var tables = [];
 var gameStates = ['pregame', 'betting', 'dealing', 'pair selection',
                   'tile reveal', 'endgame'];
+var stateLength = [1000,5000,5000,5000,5000,1000];
 
 var newDeck = function() {
     this.tiles = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17,
                   18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31];
 };
+
+var minimumBet = 5;
 
 var newPlayer = function(name, id, socket, minimumBet) {
     this.name = name;
@@ -415,7 +418,7 @@ var newTable = function() {
     };
     this.shuffle();
     this.seats = [null, null, null, null, null, null, null];
-    this.minimumBet = 5;
+    this.minimumBet = minimumBet;
     this.banker = -1; //dealer is banker
     this.dealerTiles = [];
     this.dealerSelection = [];
@@ -455,27 +458,67 @@ app.listen(3000);
 
 io.sockets.on('connection', function(socket) {
 
-    var table = new newTable();
-    var player = new newPlayer(socket.id, socket.id, socket, table.minimumBet);
-    addPlayer(table, player);
-    tables.push(table);
+    var player = new newPlayer(socket.id, socket.id, socket, minimumBet);
+    var foundTable = false;
 
+    //look for a seat at an existing table
+    for(var i = 0; i < tables.length; i++){
+        for(var j = 0; j < tables[i].seats.length; j++){
+            if(tables[i].seats[j] != null){
+                foundTable = true;
+                addPlayer(tables[i],player);
+                break;
+            }
+        }
+        if(foundTable){
+            break;
+        }
+    }
+
+    //could not find a seat for this player, create new table
+    if(!foundTable){
+        var table = new newTable();
+        addPlayer(table,player);
+        tables.push(table);
+    }
+
+    //determine which seat the player was placed at
     var seat = -1;
+    var banker = -1;
+    var occupiedSeats = [];
     for(var i = 0; i < tables.length; i++){
         for(var j = 0; j < tables[i].seats.length; j++){
             if(tables[i].seats[j] != null){
                 if(tables[i].seats[j].id == player.id){
                     seat = j;
+                    banker = tables[i].banker;
+                    occupiedSeats = tables[i].seats;
                     break;
                 }
             }
         }
     }
 
+    var occupied = [0,0,0,0,0,0,0];
+    for(var i = 0; i < occupiedSeats.length; i++){
+        if(occupiedSeats[i] == null){
+            occupied[i] = 0;
+        }
+        else{
+            occupied[i] = occupiedSeats[i].id;
+        }
+    }
+
 
     var d = new Date();
     socket.emit('connection acknowledgment', player.wallet, player.bet,
-                d.getTime(), table.banker,seat);
+                d.getTime(), banker,seat);
+
+    for(var i = 0; i < occupiedSeats.length; i++){
+        if(occupiedSeats[i] != null){
+            occupiedSeats[i].socket.emit('occupied seats',occupied);
+        }
+    }
 
     socket.on('disconnect', function() {
         console.log('disconnect ' + player.name);
@@ -615,7 +658,7 @@ setInterval(function() {
     var d = new Date();
     var time = d.getTime();
     for (var i = 0; i < tables.length; i++) {
-        if (time - tables[i].timeOfLastStateChange > 5000) {
+        if (time - tables[i].timeOfLastStateChange > stateLength[gameStates.indexOf(tables[i].state)]) {
             //this table needs to update
             console.log("need to update");
             var currentState = tables[i].state;
@@ -761,7 +804,7 @@ setInterval(function() {
                     else if (roundWinner == 2) {
                         //dealer wins
                         tables[i].seats[tables[i].banker].socket.emit(
-                            'match result', 'banker win');
+                            'match result', 'opponent win');
                         tables[i].seats[tables[i].banker].wallet -=
                             tables[i].minimumBet;
                         tables[i].seats[tables[i].banker].socket.emit(
