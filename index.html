@@ -1072,7 +1072,8 @@
                     // Bet 5
                     if(x>bet5ButtonInfo[0] && x<bet5ButtonInfo[0]+bet5ButtonInfo[2] && y>bet5ButtonInfo[1] && y < bet5ButtonInfo[1]+bet5ButtonInfo[3]){
                         //the bet 5 button has been clicked
-                        if(game.betsLocked || game.state != "betting" || game.banker != -1){
+                        console.log("bet 5 button clicked");
+                        if(game.betsLocked || game.state != "betting" || game.banker == game.seat){
                             //do nothing
                         }
                         else if(game.wallet >= game.bet+5){
@@ -1083,7 +1084,7 @@
 
                     // Bet lock button
                     if(x>betLockButtonInfo[0] && x<betLockButtonInfo[0]+betLockButtonInfo[2] && y>betLockButtonInfo[1] && y < betLockButtonInfo[1]+betLockButtonInfo[3]){
-                        if(game.state == "betting" && game.banker == -1){
+                        if(game.state == "betting" && game.banker != game.seat){
                             console.log(game.betsLocked);
                             if(!game.betsLocked){
                                 socket.emit("bet locked",game.bet);

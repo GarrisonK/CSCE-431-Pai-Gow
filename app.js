@@ -383,7 +383,7 @@ function getRoundWinner(bankerTiles, bankerSelection, opTiles, opSelection) {
 var tables = [];
 var gameStates = ['pregame', 'betting', 'dealing', 'pair selection',
                   'tile reveal', 'endgame'];
-var stateLength = [1000,5000,5000,5000,5000,1000];
+var stateLength = [1000,10000,5000,10000,10000,1000];
 
 var newDeck = function() {
     this.tiles = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17,
@@ -780,9 +780,9 @@ setInterval(function() {
                 else {
                     //dealer is not the banker
                     var bankerHigh = getBestPairSelection(
-                        tables[i].seats[tables[i]. banker].tiles);
+                        tables[i].seats[tables[i].banker].tiles);
                     var bankerLow = getOtherPair(
-                        tables[i].seats[tables[i]. banker].tiles, bankerHigh);
+                        tables[i].seats[tables[i].banker].tiles, bankerHigh);
                     //first, compare the dealer tiles to the banker
                     var roundWinner = getRoundWinner(
                         tables[i].seats[tables[i].banker].tiles,
@@ -815,6 +815,39 @@ setInterval(function() {
                         //push
                         tables[i].seats[tables[i].banker].socket.emit(
                             'match result', 'push');
+                    }
+
+                    //now compare all other players against the banker
+                    for(var j = 0; j < tables[i].seats.length; j++){
+                        if(tables[i].seats[j] != null && tables[i].banker != j){
+                            var roundWinner = getRoundWinner(tables[i].seats[tables[i].banker].tiles,
+                                tables[i].seats[tables[i].banker].tileSelection,
+                                tables[i].seats[j].tiles,
+                                tables[i].seats[j].tileSelection);
+                            console.log("\n\n\n\nResult: "+roundWinner+"\n\n\n\n");
+                            if(roundWinner == 1){
+                                //banker win
+                                tables[i].seats[tables[i].banker].socket.emit('match result','banker win');
+                                tables[i].seats[j].socket.emit('match result','banker win');
+                                tables[i].seats[tables[i].banker].wallet += tables[i].seats[j].bet;
+                                tables[i].seats[j].wallet -= tables[i].seats[j].bet;
+                                tables[i].seats[tables[i].banker].socket.emit('wallet update',tables[i].seats[tables[i].banker].wallet);
+                                tables[i].seats[j].socket.emit('wallet update',tables[i].seats[j].wallet);
+                            }
+                            else if(roundWinner == 2){
+                                //opponent win
+                                tables[i].seats[tables[i].banker].socket.emit('match result','opponent win');
+                                tables[i].seats[j].socket.emit('match result','opponent win');
+                                tables[i].seats[tables[i].banker].wallet -= tables[i].seats[j].bet;
+                                tables[i].seats[j].wallet += tables[i].seats[j].bet;
+                                tables[i].seats[tables[i].banker].socket.emit('wallet update',tables[i].seats[tables[i].banker].wallet);
+                                tables[i].seats[j].socket.emit('wallet update',tables[i].seats[j].wallet);
+                            }
+                            else{
+                                tables[i].seats[tables[i].banker].socket.emit('match result','push');
+                                tables[i].seats[j].socket.emit('match result','push');
+                            }
+                        }
                     }
 
                 }
