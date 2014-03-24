@@ -671,6 +671,44 @@
                         ctx.fillStyle = "#000000";
                         ctx.fillText(text,seatTileLocations[game.seat][1][0],seatTileLocations[game.seat][1][1]+tileHeight*tileScale+25);
                     }
+
+                    //display pair help during tile reveal for all players
+                    if(game.state == 'tile reveal'){
+                        for(var i = 0; i < game.seatsTiles.length; i++){
+                            var text = "";
+                            if(isPair(game.seatsPairs[i][0],game.seatsPairs[i][1])){
+                                text+="Pair";
+                            }
+                            else if(isWong(game.seatsPairs[i][0],game.seatsPairs[i][1])){
+                                text+="Wong";
+                            }
+                            else if(isGong(game.seatsPairs[i][0],game.seatsPairs[i][1])){
+                                text+="Gong"
+                            }
+                            else{
+                                text+=getNonPairValue(game.seatsPairs[i][0],game.seatsPairs[i][1]);
+                            }
+
+                            var other = getOtherPair(game.seatsTiles[i],game.seatsPairs[i]);
+
+                            text+="/";
+
+                            if(isPair(other[0],other[1])){
+                                text+="Pair";
+                            }
+                            else if(isWong(other[0],other[1])){
+                                text+="Wong";
+                            }
+                            else if(isGong(other[0],other[1])){
+                                text+="Gong"
+                            }
+                            else{
+                                text+=getNonPairValue(other[0],other[1]);
+                            }
+                            ctx.fillStyle = "#000000";
+                            ctx.fillText(text,seatTileLocations[i][1][0],seatTileLocations[i][1][1]+tileHeight*tileScale+25);
+                        }
+                    }
                 }
 
                 var drawDealerPairHelp = function(){
