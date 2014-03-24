@@ -448,6 +448,16 @@ var app = http.createServer(function(req, res) {
         res.writeHead(200, {'Content-Type' : 'image/png'});
         res.end(tiles, 'binary');
     }
+     else if (action == '/buttons.png') {
+        var buttons = fs.readFileSync('./buttons.png');
+        res.writeHead(200, {'Content-Type' : 'image/png'});
+        res.end(buttons, 'binary');
+    }
+    	else if (action == '/table.png') {
+        var table = fs.readFileSync('./table.png');
+        res.writeHead(200, {'Content-Type' : 'image/png'});
+        res.end(table, 'binary');
+    }
     else {
         res.writeHead(200, {'content-Type' : 'text/html'});
         res.end(index);

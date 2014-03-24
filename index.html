@@ -395,6 +395,10 @@
             var tileWidth = 75;
             var tileHeight = 150;
             var tileScale = .5;
+            var bankerCropInfo = [15,15,100,100];
+            var bankerButtonInfo = [100,55,140,165,225]; //[width, height, x, y for take, y for skip]
+            var handLockInfo = [100,55,265,35,100]; //[width, height ,x cord, y for lock, y for unlock]
+            var betLockInfo = [100,55,142,35,100]; //[width, height, x cord, y for lock, y for unlock]
             var bet5ButtonInfo = [50,500,50,25];
             var betLockButtonInfo = [50,400,50,25];
             var selectionLockButtonInfo = [50,450,50,25];
@@ -448,11 +452,17 @@
                 // };
 
                 var tileImage = new Image();
+                var buttonImage = new Image();
+                var tableImage = new Image();
                 var tileReady = false;
                 tileImage.src = "/tiles.png";
+                buttonImage.src = "/buttons.png";
+                tableImage.src = "/table.png";
                 tileImage.onload = function(){
                     tileReady = true;
                 }
+                
+               
 
                 drawTile = function(id,x,y){
                     ctx.drawImage(tileImage,tileLocations[id][0],tileLocations[id][1],tileWidth,tileHeight,x,y,tileWidth*tileScale,tileHeight*tileScale);
@@ -519,19 +529,28 @@
                     else{
                         position = bankerSymbolLocations[game.banker];
                     }
-                    ctx.fillStyle = "#FFFFFF";
-                    ctx.fillRect(position[0],position[1],20,20);
-
+                    //ctx.fillStyle = "#FFFFFF";
+                   // ctx.fillRect(position[0],position[1],20,20);
+                    ctx.drawImage(buttonImage,bankerCropInfo[0],bankerCropInfo[1],bankerCropInfo[2],bankerCropInfo[3],position[0],position[1],25,25);
+							
+						
+						
+							
+							
                     //also draw the selection box for banking on players turn
-                    ctx.fillStyle = "#000000";
-                    ctx.fillRect(bankerSelectionInfo[0],bankerSelectionInfo[1],bankerSelectionInfo[2],bankerSelectionInfo[3]);
+                    //ctx.fillStyle = "#000000";
+                   // ctx.fillRect(bankerSelectionInfo[0],bankerSelectionInfo[1],bankerSelectionInfo[2],bankerSelectionInfo[3]);
                     if(game.bankOnTurn){
-                        ctx.fillStyle = "#00FF00";
-                        ctx.fillText("Bank",bankerSelectionInfo[0],bankerSelectionInfo[1]);
+                       // ctx.fillStyle = "#00FF00";
+                        //ctx.fillText("Bank",bankerSelectionInfo[0],bankerSelectionInfo[1]);
+                        ctx.drawImage(buttonImage,bankerButtonInfo[2],bankerButtonInfo[3],bankerButtonInfo[0],bankerButtonInfo[1],
+                        									bankerSelectionInfo[0],bankerSelectionInfo[1],bankerButtonInfo[0],bankerButtonInfo[1]);
                     }
                     else{
-                        ctx.fillStyle = "#CC0000";
-                        ctx.fillText("Skip",bankerSelectionInfo[0],bankerSelectionInfo[1]);
+                       // ctx.fillStyle = "#CC0000";
+                       // ctx.fillText("Skip",bankerSelectionInfo[0],bankerSelectionInfo[1]);
+                       ctx.drawImage(buttonImage,bankerButtonInfo[2],bankerButtonInfo[4],bankerButtonInfo[0],bankerButtonInfo[1],
+                       									  bankerSelectionInfo[0],bankerSelectionInfo[1],bankerButtonInfo[0],bankerButtonInfo[1]);
                     }
                 }
 
@@ -544,30 +563,41 @@
                     ctx.fillStyle = "#000000";
                     ctx.fillRect(bet5ButtonInfo[0],bet5ButtonInfo[1],bet5ButtonInfo[2],bet5ButtonInfo[3]);
                 }
-
+                	
+                 
+		
                 drawSelectionLockButtons = function(){
-                    ctx.fillStyle = "#000000";
-                    ctx.fillRect(selectionLockButtonInfo[0],selectionLockButtonInfo[1],selectionLockButtonInfo[2],selectionLockButtonInfo[3]);
+                    //ctx.fillStyle = "#000000";
+                    //ctx.fillRect(selectionLockButtonInfo[0],selectionLockButtonInfo[1],selectionLockButtonInfo[2],selectionLockButtonInfo[3]);
                     if(game.selectionLocked){
-                        ctx.fillStyle = "#FF0000";
-                        ctx.fillText("LOCKED",selectionLockButtonInfo[0],selectionLockButtonInfo[1]);
+                        //ctx.fillStyle = "#FF0000";
+                        //ctx.fillText("LOCKED",selectionLockButtonInfo[0],selectionLockButtonInfo[1]);
+                        ctx.drawImage(buttonImage,handLockInfo[2],handLockInfo[4],handLockInfo[0],handLockInfo[1],
+                        									selectionLockButtonInfo[0],selectionLockButtonInfo[1],handLockInfo[0],handLockInfo[1]);	
                     }
                     else{
-                        ctx.fillStyle = "#006600";
-                        ctx.fillText("UNLOCKED",selectionLockButtonInfo[0],selectionLockButtonInfo[1]);
+                        //ctx.fillStyle = "#006600";
+                        //ctx.fillText("UNLOCKED",selectionLockButtonInfo[0],selectionLockButtonInfo[1]);
+                        
+                      	ctx.drawImage(buttonImage,handLockInfo[2],handLockInfo[3],handLockInfo[0],handLockInfo[1],
+                        									selectionLockButtonInfo[0],selectionLockButtonInfo[1],handLockInfo[0],handLockInfo[1]);	
                     }
                 }
 
                 drawBetLockButton = function(){
-                    ctx.fillStyle = "#000000";
-                    ctx.fillRect(betLockButtonInfo[0],betLockButtonInfo[1],betLockButtonInfo[2],betLockButtonInfo[3]);
+                    //ctx.fillStyle = "#000000";
+                   // ctx.fillRect(betLockButtonInfo[0],betLockButtonInfo[1],betLockButtonInfo[2],betLockButtonInfo[3]);
                     if(game.betsLocked){
-                        ctx.fillStyle = "#FF0000";
-                        ctx.fillText("LOCKED",betLockButtonInfo[0],betLockButtonInfo[1]);
+                        //ctx.fillStyle = "#FF0000";
+                        //ctx.fillText("LOCKED",betLockButtonInfo[0],betLockButtonInfo[1]);
+                        ctx.drawImage(buttonImage,betLockInfo[2],betLockInfo[4],betLockInfo[0],betLockInfo[1],
+                        									betLockButtonInfo[0],betLockButtonInfo[1],betLockInfo[0],betLockInfo[1]);
                     }
                     else{
-                        ctx.fillStyle = "#006600";
-                        ctx.fillText("UNLOCKED",betLockButtonInfo[0],betLockButtonInfo[1]);
+                        //ctx.fillStyle = "#006600";
+                        //ctx.fillText("UNLOCKED",betLockButtonInfo[0],betLockButtonInfo[1]);
+                        ctx.drawImage(buttonImage,betLockInfo[2],betLockInfo[3],betLockInfo[0],betLockInfo[1],
+                        									betLockButtonInfo[0],betLockButtonInfo[1],betLockInfo[0],betLockInfo[1]);
                     }
 
                 }
@@ -701,8 +731,10 @@
                 render = function(){
                     
                     //Fill background
-                    ctx.fillStyle = "#003300";
+                    //ctx.fillStyle = "#003300";
+                   	ctx.fillStyle = "#F0FFFF";
                     ctx.fillRect(0,0,c.width,c.height);
+                     ctx.drawImage(tableImage,0,0,c.width,c.height); 
 
                     //Draw pot
                     ctx.fillStyle = "#000000";
