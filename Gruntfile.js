@@ -9,7 +9,7 @@ module.exports = function(grunt) {
 			},
 			test_runner: {
 				//Runs unit tests for server code
-				command: 'qunit --code ./tests/app_merged.js --tests /dev/null',
+				command: 'node node_modules/qunit/bin/cli.js --code ./tests/app_merged.js --tests /dev/null',
 				stdout: true,
 				stdin: false
 			}

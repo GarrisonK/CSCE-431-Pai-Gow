@@ -14,7 +14,8 @@ Pai Gow Tiles
 4. Install git. This is system dependent.<br/>
         - `sudo apt-get install git` for Ubuntu.
 5. Change to a directory that you want to have the project source code and run `git clone https://github.com/GarrisonK/CSCE-431-Pai-Gow.git`.
-6. Change into the project root directory and run `npm install`.
+6. Allow npm to use/create tmp directory by running `sudo rm -r ~/tmp`.
+7. Change into the project root directory and run `npm install`.
 
 ## How to run Pai Gow
 

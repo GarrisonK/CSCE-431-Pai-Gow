@@ -6,18 +6,17 @@
  
       <title>jQuery.simpleFAQ QUnit Test Runner</title>
  
-      <link rel='stylesheet' href='lib/qunit-1.10.0.css'>
+      <link rel='stylesheet' href='lib/qunit-1.14.0.css'>
  
       <!-- add any external libraries your code needs -->
       <script src='lib/jquery-1.11.0.js'></script>
  
-     <!-- <script src='../src/your.project.code.js'></script> -->
       <!-- add any JS files under test (or put them in different .html files) -->
+	  <script type="text/javascript" src="../client.js"></script>
  
-      <script src='lib/qunit-1.14.0.js'></script>
- 
-      <!-- your tests, any and all to run with the given fixtures below -->
-      <script src='test.js'></script>
+	  <script src='lib/qunit-1.14.0.js'></script>
+	  <!-- your tests, any and all to run with the given fixtures below -->
+      <script src='client_test.js'></script>
  
   </head>
   <body>
@@ -25,7 +24,17 @@
     <div id='qunit-fixture'>
  
       <!-- any HTML you want to be present in each test (will be reset for each test) -->
- 
+	  <div id="container">
+		<div id="topbar"></div>
+		<div id="leftbar"></div>
+		<div id="gamewindow">
+          <canvas id="game"></canvas>
+    	  <div>
+    		<ul id="messages"></ul>
+    	  </div>
+		</div>
+		<div id="rightbar"></div>
+	  </div>
     </div>
   </body>
 </html>
