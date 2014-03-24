@@ -27,7 +27,7 @@ module.exports = function(grunt) {
         },
         watch: {
             files: ['*.js', 'tests/*.html', 'tests/*.js'],
-            tasks: ['exec', 'jshint']
+            tasks: ['exec', 'qunit', 'jshint']
         },
         qunit: {
 			//Unit tests for client code
@@ -45,5 +45,5 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-contrib-jshint');
     grunt.loadNpmTasks('grunt-contrib-watch');
     grunt.loadNpmTasks('grunt-contrib-qunit');
-    grunt.registerTask('default', ['exec', 'jshint', 'qunit']);
+    grunt.registerTask('default', ['exec', 'qunit', 'jshint']);
 };
