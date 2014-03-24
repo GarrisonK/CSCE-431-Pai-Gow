@@ -465,7 +465,12 @@
                
 
                 drawTile = function(id,x,y){
-                    ctx.drawImage(tileImage,tileLocations[id][0],tileLocations[id][1],tileWidth,tileHeight,x,y,tileWidth*tileScale,tileHeight*tileScale);
+                    try{
+                        ctx.drawImage(tileImage,tileLocations[id][0],tileLocations[id][1],tileWidth,tileHeight,x,y,tileWidth*tileScale,tileHeight*tileScale);
+                    }
+                    catch(e){
+                        console.log(id);
+                    }
                 }
 
                 drawPlayerTiles = function(){
@@ -871,6 +876,7 @@
             game['occupiedSeats'] = [];
             game['seatsTiles'] = []; //contains the tiles dealt to each seat
             game['seatsPairs'] = [];
+            game['activeSeats'] = [false,false,false,false,false,false,false];
 
 			var updateGameInfo = function(){
                 //Prints seconds remaining, game state, etc
@@ -1026,8 +1032,10 @@
                     }
                 });
                 // Information about the game from the server
-                socket.on('pregame game information',function(banker){
+                socket.on('pregame game information',function(banker,active){
                     game.banker = banker;
+                    game.activeSeats = active;
+                    console.log(game.activeSeats);
                 });
                 // Server informs client that he doesnt have enough money to continue
                 socket.on('insufficient funds',function(){

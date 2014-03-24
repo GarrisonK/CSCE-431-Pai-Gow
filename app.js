@@ -422,11 +422,17 @@ var newTable = function() {
     this.banker = -1; //dealer is banker
     this.dealerTiles = [];
     this.dealerSelection = [];
+    this.activeSeats = [false,false,false,false,false,false,false];
 };
 
 var addPlayer = function(table, player) {
-    table.seats[table.seats.indexOf(null)] = player; //place player in first
+    var seat = table.seats.indexOf(null);
+    table.seats[seat] = player; //place player in first
     //available seat
+
+    if(table.state == "pregame"){
+        table.activeSeats[seat] = true;   //if this player joins during pregame, set him active
+    }
 
 };
 
@@ -495,7 +501,7 @@ io.sockets.on('connection', function(socket) {
     //determine which seat the player was placed at
     var seat = -1;
     var banker = -1;
-    var occupiedSeats = [];
+    var occupiedSeats = []; //a copy of the seats array for the players table
     for(var i = 0; i < tables.length; i++){
         for(var j = 0; j < tables[i].seats.length; j++){
             if(tables[i].seats[j] != null){
@@ -509,7 +515,7 @@ io.sockets.on('connection', function(socket) {
         }
     }
 
-    var occupied = [0,0,0,0,0,0,0];
+    var occupied = [0,0,0,0,0,0,0]; //contains the ids for the players in each seat, 0 if empty. Is used to pass to client
     for(var i = 0; i < occupiedSeats.length; i++){
         if(occupiedSeats[i] == null){
             occupied[i] = 0;
@@ -541,7 +547,8 @@ io.sockets.on('connection', function(socket) {
                 if(tables[i].seats[j] != null){
                     if (tables[i].seats[j].id == player.id) {
                         tables[i].seats[j] = null;
-                        tables.splice(i, 1);
+                        tables[i].activeSeats[j] = false;
+                        //tables.splice(i, 1);
                         break;
                     }
                 }
@@ -670,27 +677,63 @@ setInterval(function() {
     for (var i = 0; i < tables.length; i++) {
         if (time - tables[i].timeOfLastStateChange > stateLength[gameStates.indexOf(tables[i].state)]) {
             //this table needs to update
-            console.log("need to update");
             var currentState = tables[i].state;
             tables[i].state = gameStates[(gameStates.indexOf(currentState) +
                                           1) % gameStates.length];
-            console.log("new state: "+tables[i].state);
             tables[i].timeOfLastStateChange = time;
             for (var j = 0; j < tables[i].seats.length; j++) {
                 if (tables[i].seats[j] != null) {
-                    console.log("emitting new state");
                     tables[i].seats[j].socket.emit('game state change',
                                                    tables[i].state, time);
                 }
             }
 
             if (tables[i].state == 'pregame') {
+
+
+                // TODO: handle if a player doesn't have enough money to be
+                //banker (how much money is that?)
+
+                // find the next willing banker
+                 while (true) {
+                    tables[i].banker += 1;
+                    if (tables[i].banker == 7) {
+                        tables[i].banker = -1;
+                    }
+                    if (tables[i].banker != -1 &&
+                        tables[i].seats[tables[i].banker] == null) {
+                        //continue looking for next banker
+                    }
+                    else if (tables[i].seats[tables[i].banker] !=
+                             null && tables[i].seats[tables[i].
+                                                     banker].bankOnTurn ==
+                             false) {
+                        //this player doesn't want to bank
+                    }
+                    else {
+                        //found a player to be the next banker
+                        break;
+                    }
+                }
+
+                //activate all inactive players
+                for(var j = 0; j < tables[i].seats.length; j++){
+                    if(tables[i].seats[j] != null){
+                        tables[i].activeSeats[j] = true;
+                    }
+                    else{
+                        tables[i].activeSeats[j] = false;
+                    }
+                }
+
                 for (var j = 0; j < tables[i].seats.length; j++) {
                     if (tables[i].seats[j] != null) {
                         tables[i].seats[j].socket.emit(
-                            'pregame game information', tables[i].banker);
+                            'pregame game information', tables[i].banker,tables[i].activeSeats);
+                        tables[i].activeSeats[j] = true;    //activeate any inactive players
                     }
                 }
+
             }
             else if (tables[i].state == 'dealing') {
                 var count = 0;
@@ -887,33 +930,7 @@ setInterval(function() {
                         }
                     }
                 }
-
-                // TODO: handle if a player doesn't have enough money to be
-                //banker (how much money is that?)
-
-                // find the next willing banker
-                while (true) {
-                    tables[i].banker += 1;
-                    if (tables[i].banker == 7) {
-                        tables[i].banker = -1;
-                    }
-                    if (tables[i].banker != -1 &&
-                        tables[i].seats[tables[i].banker] == null) {
-                        //continue looking for next banker
-                    }
-                    else if (tables[i].seats[tables[i].banker] !=
-                             null && tables[i].seats[tables[i].
-                                                     banker].bankOnTurn ==
-                             false) {
-                        //this player doesn't want to bank
-                    }
-                    else {
-                        //found a player to be the next banker
-                        break;
-                    }
-                }
             }
-
         }
     }
 },1000);
