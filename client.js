@@ -471,7 +471,7 @@ $(function(){
                 drawTile(game.tiles[j],seatTileLocations[game.seat][j][0],seatTileLocations[game.seat][j][1]);
             }
             for(var i = 0; i < 7; i++){
-                if(game.occupiedSeats[i] != 0 && i != game.seat){
+                if(game.occupiedSeats[i] != 0 && i != game.seat && game.activeSeats[i] == true){
                     for(var j = 0; j < 4; j++){
                         drawTileBack(seatTileLocations[i][j][0],seatTileLocations[i][j][1]);
                     }
@@ -692,38 +692,40 @@ $(function(){
         //display pair help during tile reveal for all players
         if(game.state == 'tile reveal'){
             for(var i = 0; i < game.seatsTiles.length; i++){
-                var text = "";
-                if(isPair(game.seatsPairs[i][0],game.seatsPairs[i][1])){
-                    text+="Pair";
-                }
-                else if(isWong(game.seatsPairs[i][0],game.seatsPairs[i][1])){
-                    text+="Wong";
-                }
-                else if(isGong(game.seatsPairs[i][0],game.seatsPairs[i][1])){
-                    text+="Gong"
-                }
-                else{
-                    text+=getNonPairValue(game.seatsPairs[i][0],game.seatsPairs[i][1]);
-                }
+                if(game.activeSeats[i] == true){
+                    var text = "";
+                    if(isPair(game.seatsPairs[i][0],game.seatsPairs[i][1])){
+                        text+="Pair";
+                    }
+                    else if(isWong(game.seatsPairs[i][0],game.seatsPairs[i][1])){
+                        text+="Wong";
+                    }
+                    else if(isGong(game.seatsPairs[i][0],game.seatsPairs[i][1])){
+                        text+="Gong"
+                    }
+                    else{
+                        text+=getNonPairValue(game.seatsPairs[i][0],game.seatsPairs[i][1]);
+                    }
 
-                var other = getOtherPair(game.seatsTiles[i],game.seatsPairs[i]);
+                    var other = getOtherPair(game.seatsTiles[i],game.seatsPairs[i]);
 
-                text+="/";
+                    text+="/";
 
-                if(isPair(other[0],other[1])){
-                    text+="Pair";
+                    if(isPair(other[0],other[1])){
+                        text+="Pair";
+                    }
+                    else if(isWong(other[0],other[1])){
+                        text+="Wong";
+                    }
+                    else if(isGong(other[0],other[1])){
+                        text+="Gong"
+                    }
+                    else{
+                        text+=getNonPairValue(other[0],other[1]);
+                    }
+                    ctx.fillStyle = "#000000";
+                    ctx.fillText(text,seatTileLocations[i][1][0],seatTileLocations[i][1][1]+tileHeight*tileScale+25);
                 }
-                else if(isWong(other[0],other[1])){
-                    text+="Wong";
-                }
-                else if(isGong(other[0],other[1])){
-                    text+="Gong"
-                }
-                else{
-                    text+=getNonPairValue(other[0],other[1]);
-                }
-                ctx.fillStyle = "#000000";
-                ctx.fillText(text,seatTileLocations[i][1][0],seatTileLocations[i][1][1]+tileHeight*tileScale+25);
             }
         }
     }
@@ -898,13 +900,14 @@ function resetTileDivs(){
 }
 
 $(function(){   //document is ready
-    socket.on('connection acknowledgment',function(wallet,bet,time,banker,seat){
+    socket.on('connection acknowledgment',function(wallet,bet,time,banker,seat,active){
         game.lastStateChange = time;
         game.bet = bet;
         game.minimumBet = bet;
         game.wallet = wallet;
         game.banker = banker;
         game.seat = seat;
+        game.activeSeats = active;
         $("#messages").prepend("<li>Got a connection from the server</li>");
         updateGameInfo();
     });
@@ -918,7 +921,7 @@ $(function(){   //document is ready
     // Handle state changes
     socket.on('game state change',function(state,time){
         game.state = state;
-        if(state == "dealing" && !game.betsLocked){
+        if(state == "dealing" && !game.betsLocked && game.activeSeats[game.seat] == true){
             socket.emit("bet locked",game.bet);
             game.betsLocked = true;
         }
@@ -927,7 +930,7 @@ $(function(){   //document is ready
         }
         if(state == "tile reveal"){
             game.selectionLocked = true;
-            if(game.selectedTiles.length != 2 && game.selectionLocked == false){
+            if(game.selectedTiles.length != 2 && game.selectionLocked == false && game.activeSeats[game.seat] == true){
                 if(game.lastConfirmedSelection.length == 2){
                     //the user had perviously locked with a valid selection, reapply this selection
                     game.selectedTiles = game.lastConfirmedSelection;
