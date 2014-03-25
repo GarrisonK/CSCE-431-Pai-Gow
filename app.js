@@ -695,7 +695,6 @@ setInterval(function() {
             tables[i].timeOfLastStateChange = time;
             for (var j = 0; j < tables[i].seats.length; j++) {
                 if (tables[i].seats[j] != null) {
-                    console.log("emitting new state");
                     tables[i].seats[j].socket.emit('game state change',
                                                    tables[i].state, time);
                 }
@@ -764,7 +763,7 @@ setInterval(function() {
                 }
                 // Set default selection
                 for (var k = 0; k < 7; k++) {
-                    if (tables[i].seats[k] != null && tables[i].activeSeats[j] == true) {
+                    if (tables[i].seats[k] != null && tables[i].activeSeats[k] == true) {
                         tables[i].seats[k].tileSelection =
                             [tables[i].seats[k].tiles[0],
                              tables[i].seats[k].tiles[1]];
