@@ -690,6 +690,36 @@ setInterval(function() {
             }
 
             if (tables[i].state == 'pregame') {
+
+
+                // TODO: handle if a player doesn't have enough money to be
+                //banker (how much money is that?) 
+                // find the next willing banker
+                 while (true) {
+                     tables[i].banker += 1;
+                     if (tables[i].banker == 7) {
+                         tables[i].banker = -1;
+                     }
+                     console.log("\n\n\nbanker: "+tables[i].banker+"\n\n\n");
+                     if(tables[i].banker == -1){
+                        //dealer will bank
+                        break;
+                     }
+                     if (tables[i].seats[tables[i].banker] === null) {
+                         //continue looking for next banker
+                     }
+                     else if (tables[i].seats[tables[i].banker] !==
+                              null && tables[i].seats[tables[i].
+                                                      banker].bankOnTurn ===
+                              false) {
+                        //this player doesn't want to bank
+                     }
+                     else {
+                        //found a player to be the next banker
+                         break;
+                     }
+                 }
+
                 for (var j = 0; j < tables[i].seats.length; j++) {
                     if (tables[i].seats[j] != null) {
                         tables[i].seats[j].socket.emit(
