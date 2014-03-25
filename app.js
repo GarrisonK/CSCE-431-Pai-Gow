@@ -422,11 +422,16 @@ var newTable = function() {
     this.banker = -1; //dealer is banker
     this.dealerTiles = [];
     this.dealerSelection = [];
+    this.activeSeats = [false,false,false,false,false,false,false];
 };
 
 var addPlayer = function(table, player) {
-    table.seats[table.seats.indexOf(null)] = player; //place player in first
+    var seat = table.seats.indexOf(null);
+    table.seats[seat] = player; //place player in first
     //available seat
+    if(table.state == "pregame"){
+        table.activeSeats[seat] = true;
+    }
 
 };
 
@@ -500,7 +505,7 @@ io.sockets.on('connection', function(socket) {
     //determine which seat the player was placed at
     var seat = -1;
     var banker = -1;
-    var occupiedSeats = [];
+    var occupiedSeats = []; //a copy of the seats array for the players table
     for(var i = 0; i < tables.length; i++){
         for(var j = 0; j < tables[i].seats.length; j++){
             if(tables[i].seats[j] != null){
@@ -514,7 +519,7 @@ io.sockets.on('connection', function(socket) {
         }
     }
 
-    var occupied = [0,0,0,0,0,0,0];
+    var occupied = [0,0,0,0,0,0,0]; //contains the ids for the players in each seat, 0 if empty.
     for(var i = 0; i < occupiedSeats.length; i++){
         if(occupiedSeats[i] == null){
             occupied[i] = 0;
@@ -546,7 +551,9 @@ io.sockets.on('connection', function(socket) {
                 if(tables[i].seats[j] != null){
                     if (tables[i].seats[j].id == player.id) {
                         tables[i].seats[j] = null;
-                        tables.splice(i, 1);
+                        tables[i].activeSeats[j] = false;
+                        // tables.splice(i, 1);
+                        //TODO: notify client of disconnection
                         break;
                     }
                 }
@@ -723,7 +730,7 @@ setInterval(function() {
                 for (var j = 0; j < tables[i].seats.length; j++) {
                     if (tables[i].seats[j] != null) {
                         tables[i].seats[j].socket.emit(
-                            'pregame game information', tables[i].banker);
+                            'pregame game information', tables[i].banker,tables[i].activeSeats);
                     }
                 }
             }
