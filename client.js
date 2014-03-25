@@ -381,11 +381,11 @@ var bankerCropInfo = [15,15,100,100];
 var bankerButtonInfo = [100,55,140,165,225]; //[width, height, x, y for take, y for skip]
 var handLockInfo = [100,55,265,35,100]; //[width, height ,x cord, y for lock, y for unlock]
 var betLockInfo = [100,55,142,35,100]; //[width, height, x cord, y for lock, y for unlock]
-var bet5ButtonInfo = [50,500,50,25];
-var betLockButtonInfo = [50,400,50,25];
-var selectionLockButtonInfo = [50,450,50,25];
-var bankerSelectionInfo = [1000,500,50,25];
-var dealerBankerSymbolLocation = [550,25];
+var bet5ButtonInfo = [50,500,50,25];    //xpos,ypos,width,height
+var betLockButtonInfo = [50,400,50,25]; //xpos,ypos,width,height
+var selectionLockButtonInfo = [50,450,50,25]; //xpos,ypos,width,height
+var bankerSelectionInfo = [1000,500,50,25]; //xpos,ypos,width,height
+var dealerBankerSymbolLocation = [550,25]; 
 var bankerSymbolLocations = [[78,156],[117,319],[270,431],[487,459],[718,457],[893,352],[1018,156]];
 
 var tileLocations = [[665,545],[750,545],[98,72],[182,72],[286,72],[370,72],[478,74],[562,74],[666,74],[750,74],[97,229],[181,229],[285,229],[369,229],[477,231],[561,231],[655,231],[749,231],[96,386],[180,386],[284,386],[368,386],[476,388],[560,388],[664,388],[748,388],[96,543],[180,543],[284,543],[368,543],[476,545],[560,545]];
@@ -821,6 +821,13 @@ $(function(){
         drawTimer();
         drawPlayerPairHelp();
         drawDealerPairHelp();
+
+        if(game.activeSeats[game.seat] == false){
+            //Let the player know he is inactive
+            ctx.fillStyle = "#000000";
+            ctx.font = "30px Arial";
+            ctx.fillText("Waiting for start of next round",450,350);
+        }
     }
 
     setInterval(function(){
@@ -941,14 +948,16 @@ $(function(){   //document is ready
                 }
                 socket.emit('tile selection',game.selectedTiles);
             }
-            else if(game.selectionLocked == false){
+            else if(game.selectionLocked == false && game.activeSeats[game.seat] == true){
                 //player hasn't locked, but has two tiles highlighted
                 //consider changing this logic, do we want to use the two selected, or the last locked in pair?
                 game.selectedTiles = game.lastConfirmedSelection;
                 socket.emit('tile selection', game.selectedTiles);
             }
             else{
-                socket.emit('tile selection', game.selectedTiles);  
+                if(game.activeSeats[game.seat] == true){
+                    socket.emit('tile selection', game.selectedTiles);
+                }
             }
         }
         if(state == 'endgame'){
@@ -1162,7 +1171,7 @@ $(function(){   //document is ready
         }
 
         // Bet lock button
-        if(x>betLockButtonInfo[0] && x<betLockButtonInfo[0]+betLockButtonInfo[2] && y>betLockButtonInfo[1] && y < betLockButtonInfo[1]+betLockButtonInfo[3]){
+        if(x>betLockButtonInfo[0] && x<betLockButtonInfo[0]+betLockInfo[0] && y > betLockButtonInfo[1] && y < betLockButtonInfo[1]+betLockInfo[1]){
             if(game.state == "betting" && game.banker != game.seat){
                 console.log(game.betsLocked);
                 if(!game.betsLocked){
@@ -1177,7 +1186,7 @@ $(function(){   //document is ready
         }
 
         // Pair lock button
-        if(x>selectionLockButtonInfo[0] && x<selectionLockButtonInfo[0]+selectionLockButtonInfo[2] && y>selectionLockButtonInfo[1] && y < selectionLockButtonInfo[1]+selectionLockButtonInfo[3]){
+        if(x>selectionLockButtonInfo[0] && x<selectionLockButtonInfo[0]+handLockInfo[0] && y>selectionLockButtonInfo[1] && y < selectionLockButtonInfo[1]+handLockInfo[1]){
             console.log("Get clicked");
             if(game.state == "pair selection"){
                 if(!game.selectionLocked){
@@ -1220,7 +1229,7 @@ $(function(){   //document is ready
         }
 
         // Click on banker selection button
-        if(x>bankerSelectionInfo[0] && x<bankerSelectionInfo[0]+bankerSelectionInfo[2] && y>bankerSelectionInfo[1] && y < bankerSelectionInfo[1]+bankerSelectionInfo[3]){
+        if(x>bankerSelectionInfo[0] && x<bankerSelectionInfo[0]+bankerButtonInfo[0] && y>bankerSelectionInfo[1] && y<bankerSelectionInfo[1]+bankerButtonInfo[1]){
             if(game.bankOnTurn){
                 game.bankOnTurn = false;
                 socket.emit('bank on turn',false);

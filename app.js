@@ -790,7 +790,7 @@ setInterval(function() {
                             tables[i].dealerTiles,
                             tables[i].dealerSelection);
                         for (var k = 0; k < 7; k++) {
-                            if (tables[i].seats[k] != null) {
+                            if (tables[i].seats[k] != null && tables[i].activeSeats[k] == true) {
                                 tables[i].seats[j].socket.emit(
                                     'other player tiles',
                                     tables[i].seats[k].id,
