@@ -1,4 +1,4 @@
-paper.install(window);
+
 
 //Pai Gow tile infomation code
 var dots = [3,6,12,12,2,2,8,8,4,4,10,10,6,6,4,4,11,11,10,10,7,7,6,6,9,9,8,8,7,7,5,5];
@@ -410,9 +410,9 @@ var tileY = 150;
 
 $(function(){
 
-    paper.setup('game');
-
     var c = document.getElementById("game");
+    c.width = 1100;
+    c.height = 600;
     var ctx = c.getContext('2d');
     // ctx.fillStyle = "#003300";
     // ctx.fillRect(0,0,150,75);
@@ -839,7 +839,6 @@ $(function(){
     setInterval(function(){
         render();
     },100)
-    // paper.view.draw();
 });
 
 var dots = [3,6,12,12,2,2,8,8,4,4,10,10,6,6,4,4,11,11,10,10,7,7,6,6,9,9,8,8,7,7,5,5];
