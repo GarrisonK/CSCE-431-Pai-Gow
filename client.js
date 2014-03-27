@@ -377,14 +377,17 @@ function getRoundWinner(bankerTiles, bankerSelection, opTiles, opSelection){
 var tileWidth = 75;
 var tileHeight = 150;
 var tileScale = .5;
+var titleBlankCropInfo = [850,70]; // [x,y]
 var bankerCropInfo = [15,15,100,100];
-var bankerButtonInfo = [100,55,140,165,225]; //[width, height, x, y for take, y for skip]
+var bet5CropInfo = [540,40,100];   //[x cord, y for +, y for -]
+var bankerButtonInfo = [105,55,140,165,225]; //[width, height, x, y for take, y for skip]
 var handLockInfo = [100,55,265,35,100]; //[width, height ,x cord, y for lock, y for unlock]
-var betLockInfo = [100,55,142,35,100]; //[width, height, x cord, y for lock, y for unlock]
-var bet5ButtonInfo = [50,500,50,25];    //xpos,ypos,width,height
-var betLockButtonInfo = [50,400,50,25]; //xpos,ypos,width,height
-var selectionLockButtonInfo = [50,450,50,25]; //xpos,ypos,width,height
-var bankerSelectionInfo = [1000,500,50,25]; //xpos,ypos,width,height
+var betLockInfo = [100,55,405,35,100]; //[width, height, x cord, y for lock, y for unlock]
+var bet5ButtonInfo = [600,280,52,52];    //xpos,ypos,width,height
+var betDown5ButtonInfo = [450,280,52,52]; //xpos,ypos,width,height
+var betLockButtonInfo = [500,280,50,25]; //xpos,ypos,width,height
+var selectionLockButtonInfo = [1000,480,50,25]; //xpos,ypos,width,height
+var bankerSelectionInfo = [1000,540,50,25]; //xpos,ypos,width,height
 var dealerBankerSymbolLocation = [550,25]; 
 var bankerSymbolLocations = [[78,156],[117,319],[270,431],[487,459],[718,457],[893,352],[1018,156]];
 
@@ -543,12 +546,16 @@ $(function(){
 
     drawTileBack = function(x,y){
         ctx.fillStyle = "#000000";
-        ctx.fillRect(x,y,tileWidth*tileScale,tileHeight*tileScale);
+        //ctx.fillRect(x,y,tileWidth*tileScale,tileHeight*tileScale);
+      	 ctx.drawImage(tileImage,titleBlankCropInfo[0],titleBlankCropInfo[1],tileWidth,tileHeight,x,y,tileWidth*tileScale,tileHeight*tileScale);
     }
 
     drawBettingButtons = function(){
         ctx.fillStyle = "#000000";
-        ctx.fillRect(bet5ButtonInfo[0],bet5ButtonInfo[1],bet5ButtonInfo[2],bet5ButtonInfo[3]);
+        //ctx.fillRect(bet5ButtonInfo[0],bet5ButtonInfo[1],bet5ButtonInfo[2],bet5ButtonInfo[3]);
+        
+        ctx.drawImage(buttonImage,bet5CropInfo[0],bet5CropInfo[1],bet5ButtonInfo[2],bet5ButtonInfo[3],bet5ButtonInfo[0],bet5ButtonInfo[1],bet5ButtonInfo[2],bet5ButtonInfo[3]);
+        ctx.drawImage(buttonImage,bet5CropInfo[0],bet5CropInfo[2],betDown5ButtonInfo[2],betDown5ButtonInfo[3],betDown5ButtonInfo[0],betDown5ButtonInfo[1],betDown5ButtonInfo[2],betDown5ButtonInfo[3]);
     }
     
     
@@ -592,7 +599,8 @@ $(function(){
     drawWagers = function(){
         ctx.fillStyle = "#000000";
         ctx.font = '20pt Calibri';
-        ctx.fillText("Wager: "+game.bet,c.width/2,400);
+        //ctx.fillText("Wager: "+game.bet,c.width/2,400);
+         ctx.fillText("$ "+game.bet,betLockButtonInfo[0]+20,betLockButtonInfo[1]+35);
         ctx.fillText("Dealer wager: "+game.minimumBet,c.width/2,200);
     }
 
@@ -776,13 +784,10 @@ $(function(){
         ctx.fillRect(0,0,c.width,c.height);
         ctx.drawImage(tableImage,0,0,c.width,c.height); 
 
-        //Draw pot
-        ctx.fillStyle = "#000000";
-        ctx.beginPath();
-        ctx.arc(c.width/2,c.height/2,50,0,2*Math.PI);
-        ctx.stroke();
-
+     
+		
         //Draw game state
+        ctx.fillStyle = "#000000";
         ctx.fillText("State: "+game.state,20,20);
 
         drawBetLockButton();
@@ -1050,10 +1055,10 @@ $(function(){   //document is ready
         var y = Math.floor((e.pageY-$("#game").offset().top));
         console.log(x+" "+y);
 
-        // Bet 5
+        // Bet +5
         if(x>bet5ButtonInfo[0] && x<bet5ButtonInfo[0]+bet5ButtonInfo[2] && y>bet5ButtonInfo[1] && y < bet5ButtonInfo[1]+bet5ButtonInfo[3]){
             //the bet 5 button has been clicked
-            console.log("bet 5 button clicked");
+            console.log("bet +5 button clicked");
             if(game.betsLocked || game.state != "betting" || game.banker == game.seat){
                 //do nothing
             }
@@ -1062,6 +1067,21 @@ $(function(){   //document is ready
             }
             updateGameInfo();
         }
+        
+        
+        // Bet -5
+         if(x>betDown5ButtonInfo[0] && x<betDown5ButtonInfo[0]+betDown5ButtonInfo[2] && y>betDown5ButtonInfo[1] && y < betDown5ButtonInfo[1]+betDown5ButtonInfo[3]){
+            //the bet 5 button has been clicked
+            console.log("bet -5 button clicked");
+            if(game.betsLocked || game.state != "betting" || game.banker == game.seat){
+                //do nothing
+            }
+            else if(game.wallet >= game.bet+5 && game.bet > 5){
+                game.bet = game.bet-5;
+            }
+            updateGameInfo();
+        }
+        
 
         // Bet lock button
         if(x>betLockButtonInfo[0] && x<betLockButtonInfo[0]+betLockInfo[0] && y > betLockButtonInfo[1] && y < betLockButtonInfo[1]+betLockInfo[1]){
