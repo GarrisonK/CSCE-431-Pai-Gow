@@ -468,6 +468,7 @@ $(function(){
 
         //draw all the other player's tiles
         // console.log(game.seatsTiles);
+        console.log(game.activeSeats);
 
         if(game.state == "dealing" || game.state == "pair selection"){
             for(var j = 0; j < 4; j++){
@@ -996,7 +997,6 @@ $(function(){   //document is ready
             game.dealerSelection = pair;
         }
         else{
-            // console.log(game.occupiedSeats);
             for(var i = 0; i < 7; i++){
                 if(game.occupiedSeats[i] == id){
                     game.seatsTiles[i] = tiles;
@@ -1004,9 +1004,6 @@ $(function(){   //document is ready
                 }
             }
         }
-
-        // console.log(game.seatsTiles);
-        // TODO add code for different players
     });
     socket.on('confirm selection locked',function(pair){
         game.lastConfirmedSelection = pair;
@@ -1135,8 +1132,6 @@ $(function(){   //document is ready
                         game.selectedTiles.push(game.tiles[i]);
                         game.clickedTiles.push(i);
                     }
-                    // console.log(game.clickedTiles);
-                    // console.log(game.selectedTiles);
                 }
             }
         }

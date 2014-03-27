@@ -557,7 +557,19 @@ io.sockets.on('connection', function(socket) {
                     if (tables[i].seats[j].id == player.id) {
                         tables[i].seats[j] = null;
                         tables[i].activeSeats[j] = false;
-                        // tables.splice(i, 1);
+
+                        //get the number of players at this table
+                        var playerCount = 0;
+                        for(var k = 0; k < tables[i].seats.length; k++){
+                            if(tables[i].seats[k] != null){
+                                playerCount += 1;
+                            }
+                        }
+                        if(playerCount == 0){
+                            //this table has no more players, remove it
+                            tables.splice(i, 1);
+                            console.log("removed table "+i);
+                        }
                         //TODO: notify client of disconnection
                         break;
                     }
@@ -746,7 +758,19 @@ setInterval(function() {
                     }
                 }
             }
+            else if (tables[i].state == "betting"){
+                //resend the pregame information at the end of pregame
+                //handles cases where players join towards the end of pregame
+                for (var j = 0; j < tables[i].seats.length; j++) {
+                    if (tables[i].seats[j] != null) {
+                        tables[i].seats[j].socket.emit(
+                            'pregame game information', tables[i].banker,tables[i].activeSeats);
+                    }
+                }
+            }
             else if (tables[i].state == 'dealing') {
+
+
                 var count = 0;
                 for (var k = 0; k < 4; k++) { //deal 4 tiles each
                     for (var j = 0; j < 7; j++) {
@@ -941,6 +965,8 @@ setInterval(function() {
                         }
                     }
                 }
+
+
             }
         }
     }
