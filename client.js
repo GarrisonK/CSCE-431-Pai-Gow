@@ -388,6 +388,7 @@ var betDown5ButtonInfo = [450,280,52,52]; //xpos,ypos,width,height
 var betLockButtonInfo = [500,280,50,25]; //xpos,ypos,width,height
 var selectionLockButtonInfo = [1000,480,50,25]; //xpos,ypos,width,height
 var bankerSelectionInfo = [1000,540,50,25]; //xpos,ypos,width,height
+var highlightTitleInfo = [840,240,100,175]; //[x crop, y crop, width, height]
 var dealerBankerSymbolLocation = [550,25]; 
 var bankerSymbolLocations = [[78,156],[117,319],[270,431],[487,459],[718,457],[893,352],[1018,156]];
 
@@ -616,13 +617,15 @@ $(function(){
         }
     }
 
-    // highlights the current selection (Not confirmed by server)
+     // highlights the current selection (Not confirmed by server)
     var highlightSelection = function(){
         ctx.fillStyle = "#FFFF00"; //yellow
         for(var i = 0; i < game.tiles.length; i++){
             if(game.selectedTiles.indexOf(game.tiles[i]) != -1){
                 //tile is selected
-                ctx.fillRect(seatTileLocations[game.seat][i][0]+25,seatTileLocations[game.seat][i][1]-25,10,10);
+                //ctx.fillRect(seatTileLocations[game.seat][i][0]+25,seatTileLocations[game.seat][i][1]-25,10,10);
+                ctx.drawImage(tileImage,highlightTitleInfo[0],highlightTitleInfo[1],highlightTitleInfo[2],highlightTitleInfo[3],
+                									seatTileLocations[game.seat][i][0]-5,seatTileLocations[game.seat][i][1]-5,highlightTitleInfo[2]*tileScale,highlightTitleInfo[3]*tileScale);
             }
         }  
 
@@ -632,7 +635,9 @@ $(function(){
                 for(var j = 0; j < game.seatsPairs[i].length; j++){
                     for(var k = 0; k < game.seatsTiles[i].length; k++){
                         if(game.seatsTiles[i][k] == game.seatsPairs[i][j]){
-                            ctx.fillRect(seatTileLocations[i][k][0]+25,seatTileLocations[i][k][1]-25,10,10);
+                            //ctx.fillRect(seatTileLocations[i][k][0]+25,seatTileLocations[i][k][1]-25,10,10);
+                            	ctx.drawImage(tileImage,highlightTitleInfo[0],highlightTitleInfo[1],highlightTitleInfo[2],highlightTitleInfo[3],
+                									seatTileLocations[i][k][0]-5,seatTileLocations[i][k][1]-5,highlightTitleInfo[2]*tileScale,highlightTitleInfo[3]*tileScale);
                         }
                     }
                 }
@@ -644,7 +649,9 @@ $(function(){
         ctx.fillStyle = "#FFFF00";
         for(var i = 0; i < game.dealerTiles.length; i++){
             if(game.dealerSelection.indexOf(game.dealerTiles[i]) != -1){
-                ctx.fillRect(dealerTileLocations[i][0]+25,dealerTileLocations[i][1]-25,10,10);
+                //ctx.fillRect(dealerTileLocations[i][0]+25,dealerTileLocations[i][1]-25,10,10);
+                ctx.drawImage(tileImage,highlightTitleInfo[0],highlightTitleInfo[1],highlightTitleInfo[2],highlightTitleInfo[3],
+                									dealerTileLocations[i][0]-5,dealerTileLocations[i][1]-5,highlightTitleInfo[2]*tileScale,highlightTitleInfo[3]*tileScale);
             }
         }
     }
@@ -796,8 +803,7 @@ $(function(){
         ctx.fillStyle = "#000000";
         ctx.fillText("Wallet: "+game.wallet,0,c.height);
 
-        highlightSelection();
-        highlightDealerSelection();
+       
 
         drawBankerSymbol();
 
@@ -813,6 +819,9 @@ $(function(){
             drawDealerTiles();
 
         }
+        
+        highlightSelection();
+        highlightDealerSelection();
         // drawTileBack(50,50);
         drawWagers();
         drawBettingButtons();
