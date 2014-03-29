@@ -658,9 +658,10 @@ $(function(){
 
     var drawTimer = function(){
         var d = new Date();
-        var t = (game.stateChangeTime-(d.getTime()-game.lastStateChange))
+        var t = (game.stateLength[game.states.indexOf(game.state)]-(d.getTime()-game.lastStateChange))
         t=t/1000;
-        if(t<0){
+        t = Math.round(t*10)/10
+        if(t<0 || isNaN(t)){
             t = 0;
         }
 
@@ -865,6 +866,8 @@ game['bet'] = 0;
 game['minimumBet'] = 0;
 game['betsLocked'] = false;
 game['state'] = "pregame";
+game['states'] = ['pregame', 'betting', 'dealing', 'pair selection',
+                  'tile reveal', 'endgame'];
 game['stateChangeTime'] = 5000;
 game['lastStateChange'] = 0;
 game['banker'] = -1;
@@ -884,6 +887,7 @@ game['seatsPairs'] = [];
 game['activeSeats'] = [false,false,false,false,false,false,false];
 game['seatsBets'] = [null,null,null,null,null,null,null];  //the value of the bet the person at each seat has made. null if not an active seat
 game['seatsWallets'] = [null,null,null,null,null,null,null];
+game['stateLength'] = [];
 
 var updateGameInfo = function(){
     //Prints seconds remaining, game state, etc
@@ -1038,9 +1042,10 @@ $(function(){   //document is ready
         }
     });
     // Information about the game from the server
-    socket.on('pregame game information',function(banker,active){
+    socket.on('pregame game information',function(banker,active,stateLength){
         game.banker = banker;
         game.activeSeats = active;
+        game.stateLength = stateLength;
         console.log(game.activeSeats);
     });
     // Server informs client that he doesnt have enough money to continue

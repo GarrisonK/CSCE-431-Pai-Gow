@@ -378,6 +378,15 @@ function getRoundWinner(bankerTiles, bankerSelection, opTiles, opSelection) {
 
 }
 
+getPlayerName = function(id){
+    //TODO complete function stub
+    return "Bob";
+}
+
+getPlayerWallet = function(id){
+    //TODO complete function stub
+    return 100;
+}
 
 
 var tables = [];
@@ -478,7 +487,9 @@ app.listen(3000);
 
 io.sockets.on('connection', function(socket) {
 
-    var player = new newPlayer(socket.id, socket.id, socket, minimumBet);
+    var id = socket.id;
+    var player = new newPlayer(getPlayerName(id), id, socket, minimumBet);
+    player.wallet = getPlayerWallet(id);
     var foundTable = false;
     var tableId = -1;
 
@@ -754,7 +765,7 @@ setInterval(function() {
                 for (var j = 0; j < tables[i].seats.length; j++) {
                     if (tables[i].seats[j] != null) {
                         tables[i].seats[j].socket.emit(
-                            'pregame game information', tables[i].banker,tables[i].activeSeats);
+                            'pregame game information', tables[i].banker,tables[i].activeSeats,stateLength);
                     }
                 }
             }
@@ -774,7 +785,7 @@ setInterval(function() {
                 for (var j = 0; j < tables[i].seats.length; j++) {
                     if (tables[i].seats[j] != null) {
                         tables[i].seats[j].socket.emit(
-                            'pregame game information', tables[i].banker,tables[i].activeSeats);
+                            'pregame game information', tables[i].banker,tables[i].activeSeats,stateLength);
                         tables[i].seats[j].socket.emit('seats wallets',seatsWallets);
                     }
                 }
