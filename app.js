@@ -759,17 +759,40 @@ setInterval(function() {
                 }
             }
             else if (tables[i].state == "betting"){
+
+                //find out how much money each player has
+                var seatsWallets = [null,null,null,null,null,null];
+                for(var j = 0; j < tables[i].seats.length; j++){
+                    if(tables[i].seats[j] != null && tables[i].activeSeats[j] == true){
+                        seatsWallets[j] = tables[i].seats[j].wallet;
+                    }
+                }
+
                 //resend the pregame information at the end of pregame
                 //handles cases where players join towards the end of pregame
+                //also send wallet information
                 for (var j = 0; j < tables[i].seats.length; j++) {
                     if (tables[i].seats[j] != null) {
                         tables[i].seats[j].socket.emit(
                             'pregame game information', tables[i].banker,tables[i].activeSeats);
+                        tables[i].seats[j].socket.emit('seats wallets',seatsWallets);
                     }
                 }
             }
             else if (tables[i].state == 'dealing') {
+                //let the clients know all of the player's bets
+                var seatsBets = [null,null,null,null,null,null,null];
+                for(var j = 0; j < tables[i].seats.length; j++){
+                    if(tables[i].seats[j]!=null && tables[i].activeSeats[j] == true){
+                        seatsBets[j] = tables[i].seats[j].bet;
+                    }
+                }
 
+                for(var j = 0; j < tables[i].seats.length; j++){
+                    if(tables[i].seats[j] != null){
+                        tables[i].seats[i].socket.emit('seats bets',seatsBets);
+                    }
+                }
 
                 var count = 0;
                 for (var k = 0; k < 4; k++) { //deal 4 tiles each

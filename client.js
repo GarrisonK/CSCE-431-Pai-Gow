@@ -469,7 +469,7 @@ $(function(){
 
         //draw all the other player's tiles
         // console.log(game.seatsTiles);
-        console.log(game.activeSeats);
+        // console.log(game.activeSeats);
 
         if(game.state == "dealing" || game.state == "pair selection"){
             for(var j = 0; j < 4; j++){
@@ -882,6 +882,8 @@ game['occupiedSeats'] = [];
 game['seatsTiles'] = []; //contains the tiles dealt to each seat
 game['seatsPairs'] = [];
 game['activeSeats'] = [false,false,false,false,false,false,false];
+game['seatsBets'] = [null,null,null,null,null,null,null];  //the value of the bet the person at each seat has made. null if not an active seat
+game['seatsWallets'] = [null,null,null,null,null,null,null];
 
 var updateGameInfo = function(){
     //Prints seconds remaining, game state, etc
@@ -1048,6 +1050,14 @@ $(function(){   //document is ready
     // Server informs client of a connection or disconnection
     socket.on('occupied seats',function(occupied){
         game.occupiedSeats = occupied;
+    });
+    socket.on('seats bets',function(seatsBets){
+        game.seatsBets = seatsBets;
+        console.log("seatsBets"+seatsBets);
+    });
+    socket.on('seats wallets',function(seatsWallets){
+        game.seatsWallets = seatsWallets;
+        console.log("seats wallets: "+seatsWallets);
     });
 
     setInterval(function(){
