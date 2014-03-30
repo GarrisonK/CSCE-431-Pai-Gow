@@ -469,7 +469,7 @@ $(function(){
             ctx.drawImage(tileImage,tileLocations[id][0],tileLocations[id][1],tileWidth,tileHeight,x,y,tileWidth*tileScale,tileHeight*tileScale);
         }
         catch(e){
-            console.log(id);
+            console.log("tile id: "+id);
         }
     }
 
@@ -488,6 +488,11 @@ $(function(){
         if(game.state == "dealing" || game.state == "pair selection"){
             for(var j = 0; j < 4; j++){
                 drawTile(game.tiles[j],seatTileLocations[game.seat][j][0],seatTileLocations[game.seat][j][1]);
+            //if this player is active, draw his tiles
+            if(game.activeSeats[game.seat]){
+                for(var j = 0; j < 4; j++){
+                    drawTile(game.tiles[j],seatTileLocations[game.seat][j][0],seatTileLocations[game.seat][j][1]);
+                }
             }
             for(var i = 0; i < 7; i++){
                 if(game.occupiedSeats[i] != 0 && i != game.seat && game.activeSeats[i] == true){
@@ -614,10 +619,28 @@ $(function(){
 
     drawWagers = function(){
         ctx.fillStyle = "#000000";
-        ctx.font = '20pt Calibri';
-        //ctx.fillText("Wager: "+game.bet,c.width/2,400);
-         ctx.fillText("$ "+game.bet,betLockButtonInfo[0]+20,betLockButtonInfo[1]+35);
-        ctx.fillText("Dealer wager: "+game.minimumBet,c.width/2,200);
+        ctx.font = '15pt Calibri';
+        ctx.fillText("$ "+game.bet,betLockButtonInfo[0]+20,betLockButtonInfo[1]+35);
+        ctx.fillText("$ "+game.bet,betLockButtonInfo[0]+20,betLockButtonInfo[1]+35);
+        ctx.fillText("$"+game.minimumBet,dealerTileLocations[1][0],dealerTileLocations[1][1]-10);
+
+        for(var i = 0; i < 7; i++){
+            if(game.activeSeats[i] === true && game.seatsBets[i] !== null){
+                ctx.fillText("$"+game.seatsBets[i],seatTileLocations[i][1][0],seatTileLocations[i][1][1]-10);
+            }
+        }
+    }
+
+    drawWallets = function(){
+        ctx.fillStyle = "#000000";
+        ctx.font = '15pt Calibri';
+        if(game.seatsWallets !== null){
+            for(var i = 0; i < game.seatsWallets.length; i++){
+                if(game.seatsWallets[i] !== null){
+                    ctx.fillText("$"+game.seatsWallets[i],seatTileLocations[i][2][0],seatTileLocations[i][2][1]-10);
+                }
+            }
+        }
     }
 
     //takes a pair and highlights those tiles
@@ -851,6 +874,7 @@ $(function(){
         drawTimer();
         drawPlayerPairHelp();
         drawDealerPairHelp();
+        drawWallets();
 
         if(game.activeSeats[game.seat] == false){
             //Let the player know he is inactive
@@ -930,6 +954,7 @@ function resetGameInfo(){
     game.dealerSelection = [];
     game.seatsTiles = [];
     game.seatsPairs = [];
+    game.seatsBets = [0,0,0,0,0,0,0];
 }
 
 function resetTileDivs(){
@@ -941,7 +966,7 @@ function resetTileDivs(){
 }
 
 $(function(){   //document is ready
-    socket.on('connection acknowledgment',function(wallet,bet,time,banker,seat,active){
+    socket.on('connection acknowledgment',function(wallet,bet,time,banker,seat,active,wallets){
         game.lastStateChange = time;
         game.bet = bet;
         game.minimumBet = bet;
@@ -949,6 +974,7 @@ $(function(){   //document is ready
         game.banker = banker;
         game.seat = seat;
         game.activeSeats = active;
+        game.seatsWallets = wallets;
         $("#messages").prepend("<li>Got a connection from the server</li>");
         updateGameInfo();
     });

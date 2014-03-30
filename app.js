@@ -550,10 +550,18 @@ io.sockets.on('connection', function(socket) {
         }
     }
 
+    //find out how much money each player has
+    var seatsWallets = [null,null,null,null,null,null,null];
+    for(j = 0; j < tables[tableId].seats.length; j++){
+        if(tables[tableId].seats[j] !== null && tables[tableId].activeSeats[j] === true){
+            seatsWallets[j] = tables[tableId].seats[j].wallet;
+        }
+    }
+    tables[tableId].seatsWallets = seatsWallets;
 
     var d = new Date();
     socket.emit('connection acknowledgment', player.wallet, player.bet,
-                d.getTime(), banker,seat,tables[tableId].activeSeats);
+                d.getTime(), banker,seat,tables[tableId].activeSeats,tables[tableId].seatsWallets);
 
     for(i = 0; i < occupiedSeats.length; i++){
         if(occupiedSeats[i] !== null){
@@ -781,7 +789,7 @@ setInterval(function() {
             else if (tables[i].state == "betting"){
 
                 //find out how much money each player has
-                var seatsWallets = [null,null,null,null,null,null];
+                var seatsWallets = [null,null,null,null,null,null,null];
                 for(j = 0; j < tables[i].seats.length; j++){
                     if(tables[i].seats[j] !== null && tables[i].activeSeats[j] === true){
                         seatsWallets[j] = tables[i].seats[j].wallet;
@@ -810,7 +818,7 @@ setInterval(function() {
 
                 for(j = 0; j < tables[i].seats.length; j++){
                     if(tables[i].seats[j] !== null){
-                        tables[i].seats[i].socket.emit('seats bets',seatsBets);
+                        tables[i].seats[j].socket.emit('seats bets',seatsBets);
                     }
                 }
 
