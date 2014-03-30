@@ -495,9 +495,12 @@ io.sockets.on('connection', function(socket) {
     var foundTable = false;
     var tableId = -1;
 
+    var i;
+    var j;
+
     //look for a seat at an existing table
-    for(var i = 0; i < tables.length; i++){
-        for(var j = 0; j < tables[i].seats.length; j++){
+    for(i = 0; i < tables.length; i++){
+        for(j = 0; j < tables[i].seats.length; j++){
             if(tables[i].seats[j] !== null){
                 foundTable = true;
                 addPlayer(tables[i],player);
@@ -524,8 +527,8 @@ io.sockets.on('connection', function(socket) {
     var seat = -1;
     var banker = -1;
     var occupiedSeats = []; //a copy of the seats array for the players table
-    for(var i = 0; i < tables.length; i++){
-        for(var j = 0; j < tables[i].seats.length; j++){
+    for(i = 0; i < tables.length; i++){
+        for(j = 0; j < tables[i].seats.length; j++){
             if(tables[i].seats[j] !== null){
                 if(tables[i].seats[j].id == player.id){
                     seat = j;
@@ -538,7 +541,7 @@ io.sockets.on('connection', function(socket) {
     }
 
     var occupied = [0,0,0,0,0,0,0]; //contains the ids for the players in each seat, 0 if empty.
-    for(var i = 0; i < occupiedSeats.length; i++){
+    for(i = 0; i < occupiedSeats.length; i++){
         if(occupiedSeats[i] === null){
             occupied[i] = 0;
         }
@@ -552,7 +555,7 @@ io.sockets.on('connection', function(socket) {
     socket.emit('connection acknowledgment', player.wallet, player.bet,
                 d.getTime(), banker,seat,tables[tableId].activeSeats);
 
-    for(var i = 0; i < occupiedSeats.length; i++){
+    for(i = 0; i < occupiedSeats.length; i++){
         if(occupiedSeats[i] !== null){
             occupiedSeats[i].socket.emit('occupied seats',occupied);
         }
@@ -564,8 +567,8 @@ io.sockets.on('connection', function(socket) {
         //find the table that player is at, remove him from the seat, and remove
         //that table
         // TODO: update for multiple players
-        for (var i = 0; i < tables.length; i++) {
-            for (var j = 0; j < tables[i].seats.length; j++) {
+        for (i = 0; i < tables.length; i++) {
+            for (j = 0; j < tables[i].seats.length; j++) {
                 if(tables[i].seats[j] !== null){
                     if (tables[i].seats[j].id == player.id) {
                         tables[i].seats[j] = null;
@@ -606,11 +609,13 @@ io.sockets.on('connection', function(socket) {
     });
 
     socket.on('tile selection', function(pair) {
+        var i;
+        var j;
         if (pair.length != 2) {
             //find this player, return default selection or last valid selection
             //in normal play, this code should never run
-            for (var i = 0; i < tables.length; i++) {
-                for (var j = 0; j < tables[i].seats.length; j++) {
+            for (i = 0; i < tables.length; i++) {
+                for (j = 0; j < tables[i].seats.length; j++) {
                     if (tables[i].seats[j] !== null) {
                         if (tables[i].seats[j].id == socket.id) {
                             //found player
@@ -633,8 +638,8 @@ io.sockets.on('connection', function(socket) {
             }
         }
         else {
-            for (var i = 0; i < tables.length; i++) {
-                for (var j = 0; j < 7; j++) {
+            for (i = 0; i < tables.length; i++) {
+                for (j = 0; j < 7; j++) {
                     if(tables[i].seats[j] !== null){
                         if (tables[i].seats[j].id == socket.id) {
                             for (var k = 0; k < pair.length; k++) {
@@ -710,6 +715,8 @@ setInterval(function() {
     var d = new Date();
     var time = d.getTime();
     for (var i = 0; i < tables.length; i++) {
+        var j;
+        var k;
         if (time - tables[i].timeOfLastStateChange > stateLength[gameStates.indexOf(tables[i].state)]) {
             //this table needs to update
             console.log("need to update");
@@ -718,7 +725,7 @@ setInterval(function() {
                                           1) % gameStates.length];
             console.log("new state: "+tables[i].state);
             tables[i].timeOfLastStateChange = time;
-            for (var j = 0; j < tables[i].seats.length; j++) {
+            for (j = 0; j < tables[i].seats.length; j++) {
                 if (tables[i].seats[j] !== null) {
                     tables[i].seats[j].socket.emit('game state change',
                                                    tables[i].state, time);
@@ -756,7 +763,7 @@ setInterval(function() {
                 }
 
                 //activate all players
-                for(var j = 0; j < tables[i].seats.length; j++){
+                for(j = 0; j < tables[i].seats.length; j++){
                     if(tables[i].seats[j] !== null){
                         tables[i].activeSeats[j] = true;
                     }
@@ -764,7 +771,7 @@ setInterval(function() {
 
                 console.log("active seats: "+tables[i].activeSeats);
 
-                for (var j = 0; j < tables[i].seats.length; j++) {
+                for (j = 0; j < tables[i].seats.length; j++) {
                     if (tables[i].seats[j] !== null) {
                         tables[i].seats[j].socket.emit(
                             'pregame game information', tables[i].banker,tables[i].activeSeats,stateLength);
@@ -775,7 +782,7 @@ setInterval(function() {
 
                 //find out how much money each player has
                 var seatsWallets = [null,null,null,null,null,null];
-                for(var j = 0; j < tables[i].seats.length; j++){
+                for(j = 0; j < tables[i].seats.length; j++){
                     if(tables[i].seats[j] !== null && tables[i].activeSeats[j] === true){
                         seatsWallets[j] = tables[i].seats[j].wallet;
                     }
@@ -784,7 +791,7 @@ setInterval(function() {
                 //resend the pregame information at the end of pregame
                 //handles cases where players join towards the end of pregame
                 //also send wallet information
-                for (var j = 0; j < tables[i].seats.length; j++) {
+                for (j = 0; j < tables[i].seats.length; j++) {
                     if (tables[i].seats[j] !== null) {
                         tables[i].seats[j].socket.emit(
                             'pregame game information', tables[i].banker,tables[i].activeSeats,stateLength);
@@ -795,21 +802,21 @@ setInterval(function() {
             else if (tables[i].state == 'dealing') {
                 //let the clients know all of the player's bets
                 var seatsBets = [null,null,null,null,null,null,null];
-                for(var j = 0; j < tables[i].seats.length; j++){
+                for(j = 0; j < tables[i].seats.length; j++){
                     if(tables[i].seats[j] !== null && tables[i].activeSeats[j] === true){
                         seatsBets[j] = tables[i].seats[j].bet;
                     }
                 }
 
-                for(var j = 0; j < tables[i].seats.length; j++){
+                for(j = 0; j < tables[i].seats.length; j++){
                     if(tables[i].seats[j] !== null){
                         tables[i].seats[i].socket.emit('seats bets',seatsBets);
                     }
                 }
 
                 var count = 0;
-                for (var k = 0; k < 4; k++) { //deal 4 tiles each
-                    for (var j = 0; j < 7; j++) {
+                for (k = 0; k < 4; k++) { //deal 4 tiles each
+                    for (j = 0; j < 7; j++) {
                         if (tables[i].seats[j] !== null && tables[i].activeSeats[j] === true) {
                             tables[i].seats[j].tiles.push(
                                 tables[i].deck.tiles[count]); //deal the tile
@@ -822,7 +829,7 @@ setInterval(function() {
                     count += 1;
                 }
                 // Set default selection
-                for (var k = 0; k < 7; k++) {
+                for (k = 0; k < 7; k++) {
                     if (tables[i].seats[k] !== null && tables[i].activeSeats[k] === true) {
                         tables[i].seats[k].tileSelection =
                             [tables[i].seats[k].tiles[0],
@@ -831,7 +838,7 @@ setInterval(function() {
                 }
             }
             else if (tables[i].state == 'tile reveal') {
-                for (var j = 0; j < 7; j++) {
+                for (j = 0; j < 7; j++) {
                     if (tables[i].seats[j] !== null && tables[i].activeSeats[j] === true) {
                         //tell each player their final tile selection
                         tables[i].seats[j].socket.emit(
@@ -840,7 +847,7 @@ setInterval(function() {
                     }
                 }
                 //reveal all player's tiles
-                for (var j = 0; j < 7; j++) {
+                for (j = 0; j < 7; j++) {
                     if (tables[i].seats[j] !== null) {
                         tables[i].dealerSelection = getBestPairSelection(
                             tables[i].dealerTiles);
@@ -848,7 +855,7 @@ setInterval(function() {
                             'other player tiles', 'dealer',
                             tables[i].dealerTiles,
                             tables[i].dealerSelection);
-                        for (var k = 0; k < 7; k++) {
+                        for (k = 0; k < 7; k++) {
                             if (tables[i].seats[k] !== null && tables[i].activeSeats[k] === true) {
                                 tables[i].seats[j].socket.emit(
                                     'other player tiles',
@@ -863,11 +870,13 @@ setInterval(function() {
                 //now reveal winners and payout
                 if (tables[i].banker == -1) {
                     //dealer is the banker
-                    var bankerHigh = getBestPairSelection(
-                        tables[i].dealerTiles);
-                    var bankerLow = getOtherPair(
-                        tables[i].dealerTiles, bankerHigh);
-                    for (var j = 0; j < tables[i].seats.length; j++) {
+
+                    // var bankerHigh = getBestPairSelection(
+                    //     tables[i].dealerTiles);
+                    // var bankerLow = getOtherPair(
+                    //     tables[i].dealerTiles, bankerHigh);
+
+                    for (j = 0; j < tables[i].seats.length; j++) {
                         if (tables[i].seats[j] !== null && tables[i].activeSeats[j] === true) {
                             var roundWinner = getRoundWinner(
                                 tables[i].dealerTiles,
@@ -903,17 +912,19 @@ setInterval(function() {
                 }
                 else {
                     //dealer is not the banker
-                    var bankerHigh = getBestPairSelection(
-                        tables[i].seats[tables[i].banker].tiles);
-                    var bankerLow = getOtherPair(
-                        tables[i].seats[tables[i].banker].tiles, bankerHigh);
+
+                    // var bankerHigh = getBestPairSelection(
+                    //     tables[i].seats[tables[i].banker].tiles);
+                    // var bankerLow = getOtherPair(
+                    //     tables[i].seats[tables[i].banker].tiles, bankerHigh);
+
                     //first, compare the dealer tiles to the banker
-                    var roundWinner = getRoundWinner(
+                    var proundWinner = getRoundWinner(
                         tables[i].seats[tables[i].banker].tiles,
                         tables[i].seats[tables[i].banker].tileSelection,
                         tables[i].dealerTiles,
                         tables[i].dealerSelection);
-                    if (roundWinner == 1) {
+                    if (proundWinner == 1) {
                         //banker wins
                         tables[i].seats[tables[i].banker].socket.emit(
                             'match result', 'banker win');
@@ -925,7 +936,7 @@ setInterval(function() {
                             'wallet update',
                             tables[i].seats[tables[i].banker].wallet);
                     }
-                    else if (roundWinner == 2) {
+                    else if (proundWinner == 2) {
                         //dealer wins
                         tables[i].seats[tables[i].banker].socket.emit(
                             'match result', 'opponent win');
@@ -942,14 +953,14 @@ setInterval(function() {
                     }
 
                     //now compare all other players against the banker
-                    for(var j = 0; j < tables[i].seats.length; j++){
+                    for(j = 0; j < tables[i].seats.length; j++){
                         if(tables[i].seats[j] !== null && tables[i].banker != j && tables[i].activeSeats[j] === true){
-                            var roundWinner = getRoundWinner(tables[i].seats[tables[i].banker].tiles,
+                            var pvproundWinner = getRoundWinner(tables[i].seats[tables[i].banker].tiles,
                                 tables[i].seats[tables[i].banker].tileSelection,
                                 tables[i].seats[j].tiles,
                                 tables[i].seats[j].tileSelection);
-                            console.log("\n\n\n\nResult: "+roundWinner+"\n\n\n\n");
-                            if(roundWinner == 1){
+                            console.log("\n\n\n\nResult: "+pvproundWinner+"\n\n\n\n");
+                            if(pvproundWinner == 1){
                                 //banker win
                                 tables[i].seats[tables[i].banker].socket.emit('match result','banker win');
                                 tables[i].seats[j].socket.emit('match result','banker win');
@@ -958,7 +969,7 @@ setInterval(function() {
                                 tables[i].seats[tables[i].banker].socket.emit('wallet update',tables[i].seats[tables[i].banker].wallet);
                                 tables[i].seats[j].socket.emit('wallet update',tables[i].seats[j].wallet);
                             }
-                            else if(roundWinner == 2){
+                            else if(pvproundWinner == 2){
                                 //opponent win
                                 tables[i].seats[tables[i].banker].socket.emit('match result','opponent win');
                                 tables[i].seats[j].socket.emit('match result','opponent win');
@@ -979,7 +990,7 @@ setInterval(function() {
             }
             else if (tables[i].state == 'endgame') {
                 //reset all game information, shuffle deck
-                for (var j = 0; j < tables[i].seats.length; j++) {
+                for (j = 0; j < tables[i].seats.length; j++) {
                     if (tables[i].seats[j] !== null) {
                         tables[i].seats[j].tiles = [];
                         tables[i].seats[j].tileSelection = [];
@@ -991,7 +1002,7 @@ setInterval(function() {
                 tables[i].dealerSelection = [];
 
                 //Kick players without sufficient money
-                for (var j = 0; j < tables[i].seats.length; j++) {
+                for (j = 0; j < tables[i].seats.length; j++) {
                     if (tables[i].seats[j] !== null) {
                         if (tables[i].seats[j].wallet < tables[i].minimumBet) {
                             //This player doesn't have enough money to play
