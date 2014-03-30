@@ -460,21 +460,15 @@ $(function(){
     }
 
     drawPlayerTiles = function(){
-        // if(game.state == "dealing" || game.state == "pair selection" || game.state == "tile reveal"){
-        //     drawTile(game.tiles[0],seatTileLocations[game.seat][0][0],seatTileLocations[game.seat][0][1]);
-        //     drawTile(game.tiles[1],seatTileLocations[game.seat][1][0],seatTileLocations[game.seat][1][1]);
-        //     drawTile(game.tiles[2],seatTileLocations[game.seat][2][0],seatTileLocations[game.seat][2][1]);
-        //     drawTile(game.tiles[3],seatTileLocations[game.seat][3][0],seatTileLocations[game.seat][3][1]);
-        // }
-
-        //draw all the other player's tiles
-        // console.log(game.seatsTiles);
-        // console.log(game.activeSeats);
 
         if(game.state == "dealing" || game.state == "pair selection"){
-            for(var j = 0; j < 4; j++){
-                drawTile(game.tiles[j],seatTileLocations[game.seat][j][0],seatTileLocations[game.seat][j][1]);
+            //if this player is active, draw his tiles
+            if(game.activeSeats[game.seat]){
+                for(var j = 0; j < 4; j++){
+                    drawTile(game.tiles[j],seatTileLocations[game.seat][j][0],seatTileLocations[game.seat][j][1]);
+                }
             }
+            //draw all other active players tile backs
             for(var i = 0; i < 7; i++){
                 if(game.occupiedSeats[i] != 0 && i != game.seat && game.activeSeats[i] == true){
                     for(var j = 0; j < 4; j++){
@@ -602,7 +596,7 @@ $(function(){
         ctx.fillStyle = "#000000";
         ctx.font = '20pt Calibri';
         //ctx.fillText("Wager: "+game.bet,c.width/2,400);
-         ctx.fillText("$ "+game.bet,betLockButtonInfo[0]+20,betLockButtonInfo[1]+35);
+        ctx.fillText("$ "+game.bet,betLockButtonInfo[0]+20,betLockButtonInfo[1]+35);
         ctx.fillText("Dealer wager: "+game.minimumBet,c.width/2,200);
     }
 
@@ -666,6 +660,7 @@ $(function(){
         }
 
         ctx.fillStyle = "#000000";
+        ctx.font = '20pt Calibri';
         ctx.fillText(t,1000,50);
     }
 
@@ -703,6 +698,7 @@ $(function(){
             }
 
             ctx.fillStyle = "#000000";
+            ctx.font = '20pt Calibri';
             ctx.fillText(text,seatTileLocations[game.seat][1][0],seatTileLocations[game.seat][1][1]+tileHeight*tileScale+25);
         }
 
@@ -741,6 +737,7 @@ $(function(){
                         text+=getNonPairValue(other[0],other[1]);
                     }
                     ctx.fillStyle = "#000000";
+                    ctx.font = '20pt Calibri';
                     ctx.fillText(text,seatTileLocations[i][1][0],seatTileLocations[i][1][1]+tileHeight*tileScale+25);
                 }
             }
@@ -781,6 +778,7 @@ $(function(){
             }
 
             ctx.fillStyle = "#000000";
+            ctx.font = '20pt Calibri';
             ctx.fillText(text,dealerTileLocations[3][0],dealerTileLocations[3][1]-25);
         }
     }
@@ -797,11 +795,13 @@ $(function(){
 		
         //Draw game state
         ctx.fillStyle = "#000000";
+        ctx.font = '20pt Calibri';
         ctx.fillText("State: "+game.state,20,20);
 
         drawBetLockButton();
 
         ctx.fillStyle = "#000000";
+        ctx.font = '20pt Calibri';
         ctx.fillText("Wallet: "+game.wallet,0,c.height);
 
        
