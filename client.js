@@ -488,6 +488,7 @@ $(function(){
         if(game.state == "dealing" || game.state == "pair selection"){
             for(var j = 0; j < 4; j++){
                 drawTile(game.tiles[j],seatTileLocations[game.seat][j][0],seatTileLocations[game.seat][j][1]);
+            }
             //if this player is active, draw his tiles
             if(game.activeSeats[game.seat]){
                 for(var j = 0; j < 4; j++){
@@ -886,7 +887,7 @@ $(function(){
 
     setInterval(function(){
         render();
-    },100)
+    },100);
 });
 
 var dots = [3,6,12,12,2,2,8,8,4,4,10,10,6,6,4,4,11,11,10,10,7,7,6,6,9,9,8,8,7,7,5,5];
