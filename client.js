@@ -391,6 +391,7 @@ var bankerSelectionInfo = [1000,540,50,25]; //xpos,ypos,width,height
 var highlightTitleInfo = [840,240,100,175]; //[x crop, y crop, width, height]
 //var dealerBankerSymbolLocation = [550,25]; 
 //var bankerSymbolLocations = [[78,156],[117,319],[270,431],[487,459],[718,457],[893,352],[1018,156]];
+var exitButtonInfo = [20,500,50,25]; //x,y,width,height
 
 var dealerBankerSymbolLocation = [450,250-100]; 
 var bankerSymbolLocations = [[450,450+80],[200,450+80],[750,450+80],[50,250+80],[875,250+80],[175,75+80],[750,75+80]];
@@ -824,6 +825,11 @@ $(function(){
         }
     }
 
+    drawExitButton = function(){
+        ctx.fillStyle = "#000000";
+        ctx.fillRect(exitButtonInfo[0],exitButtonInfo[1],exitButtonInfo[2],exitButtonInfo[3]);
+    }
+
     render = function(){
         
         //Fill background
@@ -886,6 +892,8 @@ $(function(){
             ctx.font = "30px Arial";
             ctx.fillText("Waiting for start of next round",450,350);
         }
+
+        drawExitButton();
     }
 
     setInterval(function(){
@@ -930,6 +938,7 @@ game['activeSeats'] = [false,false,false,false,false,false,false];
 game['seatsBets'] = [null,null,null,null,null,null,null];  //the value of the bet the person at each seat has made. null if not an active seat
 game['seatsWallets'] = [null,null,null,null,null,null,null];
 game['stateLength'] = [];
+game['exitOnRoundEnd'] = false;
 
 var updateGameInfo = function(){
     //Prints seconds remaining, game state, etc
@@ -1026,6 +1035,9 @@ $(function(){   //document is ready
         }
         if(state == 'endgame'){
             resetGameInfo();
+            if(game.exitOnRoundEnd){
+                window.location.replace("./exitPage.html");
+            }
         }
         game.lastStateChange = time;
         updateGameInfo();
@@ -1214,5 +1226,23 @@ $(function(){   //document is ready
                 socket.emit('bank on turn',true);
             }
         }
+
+        //Exit button
+        if(x>exitButtonInfo[0] && x<exitButtonInfo[0]+exitButtonInfo[2] && y>exitButtonInfo[1] && y<exitButtonInfo[1]+exitButtonInfo[3]){
+            console.log("exit button clicked");
+            if(game.exitOnRoundEnd === true){
+                game.exitOnRoundEnd = false;
+            }
+            else{
+                game.exitOnRoundEnd = true;
+            }
+            $("#messages").prepend("<li>Exit at end of round: "+game.exitOnRoundEnd+"</li>");
+        }
     });
 });
+
+window.onbeforeunload = function() {
+    if(game.state != "endgame"){
+        return "Please don't exit the game while it is in progress";
+    }
+}

@@ -469,15 +469,20 @@ var app = http.createServer(function(req, res) {
         res.writeHead(200, {'Content-Type' : 'image/png'});
         res.end(tiles, 'binary');
     }
-     else if (action == '/buttons.png') {
+    else if (action == '/buttons.png') {
         var buttons = fs.readFileSync('./buttons.png');
         res.writeHead(200, {'Content-Type' : 'image/png'});
         res.end(buttons, 'binary');
     }
-        else if (action == '/table.png') {
+    else if (action == '/table.png') {
         var table = fs.readFileSync('./table.png');
         res.writeHead(200, {'Content-Type' : 'image/png'});
         res.end(table, 'binary');
+    }
+    else if(action == '/exitPage.html'){
+        var exitPage = fs.readFileSync('./exitPage.html');
+        res.writeHead(200, {'content-Type' : 'text/html'});
+        res.end(exitPage);
     }
     else {
         res.writeHead(200, {'content-Type' : 'text/html'});
@@ -617,7 +622,7 @@ io.sockets.on('connection', function(socket) {
             }
 
             //update all players of this new bet
-            for(var j = 0; j < tables[tableId].seats.length; j++){
+            for(j = 0; j < tables[tableId].seats.length; j++){
                 if(tables[tableId].seats[j] !== null){
                     tables[tableId].seats[j].socket.emit("seats bets",seatsBets);
                 }
@@ -1037,8 +1042,6 @@ setInterval(function() {
                         }
                     }
                 }
-
-
             }
         }
     }
