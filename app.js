@@ -491,6 +491,7 @@ var app = http.createServer(function(req, res) {
 }), io = sio.listen(app);
 
 app.listen(3000);
+io.set('log level',1); //dont log so much debugging stuff
 
 io.sockets.on('connection', function(socket) {
 
@@ -506,7 +507,7 @@ io.sockets.on('connection', function(socket) {
     //look for a seat at an existing table
     for(i = 0; i < tables.length; i++){
         for(j = 0; j < tables[i].seats.length; j++){
-            if(tables[i].seats[j] !== null){
+            if(tables[i].seats[j] === null){
                 foundTable = true;
                 addPlayer(tables[i],player);
                 tableId = i;
@@ -768,7 +769,7 @@ setInterval(function() {
             var currentState = tables[i].state;
             tables[i].state = gameStates[(gameStates.indexOf(currentState) +
                                           1) % gameStates.length];
-            console.log("new state: "+tables[i].state);
+            console.log("new state for table "+i+": "+tables[i].state);
             tables[i].timeOfLastStateChange = time;
             for (j = 0; j < tables[i].seats.length; j++) {
                 if (tables[i].seats[j] !== null) {
