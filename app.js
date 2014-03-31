@@ -394,7 +394,7 @@ getPlayerWallet = function(id){
 var tables = [];
 var gameStates = ['pregame', 'betting', 'dealing', 'pair selection',
                   'tile reveal', 'endgame'];
-var stateLength = [1000,10000,5000,10000,10000,1000];
+var stateLength = [0,10000,5000,10000,10000,1000];
 
 var newDeck = function() {
     this.tiles = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17,
@@ -755,10 +755,22 @@ setInterval(function() {
 
             if (tables[i].state == 'pregame') {
 
-
-                // TODO: handle if a player doesn't have enough money to be
-                //banker (how much money is that?) 
+                //activate all players
+                for(j = 0; j < tables[i].seats.length; j++){
+                    if(tables[i].seats[j] !== null){
+                        tables[i].activeSeats[j] = true;
+                    }
+                }
+ 
                 // find the next willing banker
+                // TODO consider possibility of a player connecting during pregame
+
+                var numActivePlayers = 1; //initialize to 1 because of dealer
+                for(j = 0; j < tables[i].seats.length; j++){
+                    if(tables[i].seats[j] !== null && tables[i].activeSeats[j] === true){
+                        numActivePlayers+=1;
+                    }
+                }
                  while (true) {
                      tables[i].banker += 1;
                      if (tables[i].banker == 7) {
@@ -777,20 +789,19 @@ setInterval(function() {
                               false) {
                         //this player doesn't want to bank
                      }
+                     else if(tables[i].seats[tables[i].banker].wallet < numActivePlayers*tables[i].minimumBet){
+                        //this player doesn't have enough money to bank
+                        //Must have (number of players)*minimumBet
+                     }
                      else {
                         //found a player to be the next banker
                          break;
                      }
                 }
 
-                //activate all players
-                for(j = 0; j < tables[i].seats.length; j++){
-                    if(tables[i].seats[j] !== null){
-                        tables[i].activeSeats[j] = true;
-                    }
-                }
-
                 console.log("active seats: "+tables[i].activeSeats);
+
+
 
                 for (j = 0; j < tables[i].seats.length; j++) {
                     if (tables[i].seats[j] !== null) {
@@ -800,6 +811,7 @@ setInterval(function() {
                 }
             }
             else if (tables[i].state == "betting"){
+                
 
                 //find out how much money each player has
                 var seatsWallets = [null,null,null,null,null,null,null];
@@ -893,11 +905,6 @@ setInterval(function() {
                 if (tables[i].banker == -1) {
                     //dealer is the banker
 
-                    // var bankerHigh = getBestPairSelection(
-                    //     tables[i].dealerTiles);
-                    // var bankerLow = getOtherPair(
-                    //     tables[i].dealerTiles, bankerHigh);
-
                     for (j = 0; j < tables[i].seats.length; j++) {
                         if (tables[i].seats[j] !== null && tables[i].activeSeats[j] === true) {
                             var roundWinner = getRoundWinner(
@@ -934,11 +941,6 @@ setInterval(function() {
                 }
                 else {
                     //dealer is not the banker
-
-                    // var bankerHigh = getBestPairSelection(
-                    //     tables[i].seats[tables[i].banker].tiles);
-                    // var bankerLow = getOtherPair(
-                    //     tables[i].seats[tables[i].banker].tiles, bankerHigh);
 
                     //first, compare the dealer tiles to the banker
                     var proundWinner = getRoundWinner(
