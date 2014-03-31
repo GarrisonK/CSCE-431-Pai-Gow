@@ -609,6 +609,19 @@ io.sockets.on('connection', function(socket) {
             player.bet = bet;
             socket.emit('bet lock confirm', bet);
 
+            var seatsBets = [null,null,null,null,null,null,null];
+            for(var j = 0; j < tables[tableId].seats.length; j++){
+                if(tables[tableId].seats[j] !== null){
+                    seatsBets[j] = tables[tableId].seats[j].bet;
+                }
+            }
+
+            //update all players of this new bet
+            for(var j = 0; j < tables[tableId].seats.length; j++){
+                if(tables[tableId].seats[j] !== null){
+                    tables[tableId].seats[j].socket.emit("seats bets",seatsBets);
+                }
+            }
         }
     });
 
@@ -816,6 +829,7 @@ setInterval(function() {
                     }
                 }
 
+                console.log("\n\n\nseats bets "+seatsBets);
                 for(j = 0; j < tables[i].seats.length; j++){
                     if(tables[i].seats[j] !== null){
                         tables[i].seats[j].socket.emit('seats bets',seatsBets);
@@ -1003,6 +1017,7 @@ setInterval(function() {
                         tables[i].seats[j].tiles = [];
                         tables[i].seats[j].tileSelection = [];
                         tables[i].seats[j].selectionLocked = false;
+                        tables[i].seats[j].bet = tables[i].minimumBet;
                     }
                 }
                 tables[i].shuffle();

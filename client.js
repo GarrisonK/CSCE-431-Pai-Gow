@@ -486,9 +486,6 @@ $(function(){
         // console.log(game.activeSeats);
 
         if(game.state == "dealing" || game.state == "pair selection"){
-            for(var j = 0; j < 4; j++){
-                drawTile(game.tiles[j],seatTileLocations[game.seat][j][0],seatTileLocations[game.seat][j][1]);
-            }
             //if this player is active, draw his tiles
             if(game.activeSeats[game.seat]){
                 for(var j = 0; j < 4; j++){
@@ -704,12 +701,13 @@ $(function(){
         }
 
         ctx.fillStyle = "#000000";
+        ctx.font = '15pt Calibri';
         ctx.fillText(t,1000,50);
     }
 
     var drawPlayerPairHelp = function(){
         var text = "";
-        if(game.selectedTiles.length == 2){
+        if(game.selectedTiles.length == 2 && game.activeSeats[game.seat] === true){
             if(isPair(game.selectedTiles[0],game.selectedTiles[1])){
                 text+="Pair";
             }
@@ -741,6 +739,7 @@ $(function(){
             }
 
             ctx.fillStyle = "#000000";
+            ctx.font = '15pt Calibri';
             ctx.fillText(text,seatTileLocations[game.seat][1][0],seatTileLocations[game.seat][1][1]+tileHeight*tileScale+30);
         }
 
@@ -779,6 +778,7 @@ $(function(){
                         text+=getNonPairValue(other[0],other[1]);
                     }
                     ctx.fillStyle = "#000000";
+                    ctx.font = '15pt Calibri';
                     ctx.fillText(text,seatTileLocations[i][1][0],seatTileLocations[i][1][1]+tileHeight*tileScale+30);
                 }
             }
@@ -819,6 +819,7 @@ $(function(){
             }
 
             ctx.fillStyle = "#000000";
+            ctx.font = '15pt Calibri';
             ctx.fillText(text,dealerTileLocations[3][0],dealerTileLocations[3][1]+tileHeight*tileScale+30);
         }
     }
@@ -835,11 +836,13 @@ $(function(){
 		
         //Draw game state
         ctx.fillStyle = "#000000";
+        ctx.font = '15pt Calibri';
         ctx.fillText("State: "+game.state,20,20);
 
         drawBetLockButton();
 
         ctx.fillStyle = "#000000";
+        ctx.font = '15pt Calibri';
         ctx.fillText("Wallet: "+game.wallet,0,c.height);
 
        
@@ -955,7 +958,7 @@ function resetGameInfo(){
     game.dealerSelection = [];
     game.seatsTiles = [];
     game.seatsPairs = [];
-    game.seatsBets = [0,0,0,0,0,0,0];
+    game.seatsBets = [null,null,null,null,null,null,null];
 }
 
 function resetTileDivs(){
@@ -1160,7 +1163,7 @@ $(function(){   //document is ready
         }
 
         // Pair lock button
-        if(x>selectionLockButtonInfo[0] && x<selectionLockButtonInfo[0]+handLockInfo[0] && y>selectionLockButtonInfo[1] && y < selectionLockButtonInfo[1]+handLockInfo[1]){
+        if(x>selectionLockButtonInfo[0] && x<selectionLockButtonInfo[0]+handLockInfo[0] && y>selectionLockButtonInfo[1] && y < selectionLockButtonInfo[1]+handLockInfo[1] && game.activeSeats[game.seat] === true){
             console.log("Get clicked");
             if(game.state == "pair selection"){
                 if(!game.selectionLocked){
