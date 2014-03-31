@@ -1143,7 +1143,17 @@ $(function(){   //document is ready
                 //do nothing
             }
             else if(game.wallet >= game.bet+5){
-                game.bet = game.bet+5;
+
+                //check if bet exceeds maximum
+                var numActivePlayers = 1;
+                for(var j = 0; j < game.activeSeats.length; j++){
+                    if(game.activeSeats[j] === true){
+                        numActivePlayers++;
+                    }
+                }
+                if(game.banker === -1 || game.bet+5 <= game.seatsWallets[game.banker]/(numActivePlayers-1)){
+                    game.bet = game.bet+5;
+                }
             }
             updateGameInfo();
         }

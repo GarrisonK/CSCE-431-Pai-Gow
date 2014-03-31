@@ -627,7 +627,7 @@ io.sockets.on('connection', function(socket) {
                 }
             }
 
-            if(tables[tableId].banker === -1 || bet <= tables[tableId].seats[tables[tableId].banker].wallet / numActivePlayers){
+            if(tables[tableId].banker === -1 || bet <= tables[tableId].seats[tables[tableId].banker].wallet / (numActivePlayers-1)){
                 //TODO verify this
                 player.bet = bet;
                 socket.emit('bet lock confirm', bet);
