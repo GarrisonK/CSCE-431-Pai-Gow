@@ -1120,6 +1120,10 @@ $(function(){   //document is ready
         game.seatsWallets = seatsWallets;
         console.log("seats wallets: "+seatsWallets);
     });
+    //Called when the server wants to notify the client of a connection or disconnection
+    socket.on('active players update',function(seats){
+        game.activeSeats = seats;
+    });
 
     setInterval(function(){
         updateGameInfo();

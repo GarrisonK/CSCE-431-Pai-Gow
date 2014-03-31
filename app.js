@@ -579,29 +579,33 @@ io.sockets.on('connection', function(socket) {
 
         //find the table that player is at, remove him from the seat, and remove
         //that table
-        // TODO: update for multiple players
-        for (i = 0; i < tables.length; i++) {
-            for (j = 0; j < tables[i].seats.length; j++) {
-                if(tables[i].seats[j] !== null){
-                    if (tables[i].seats[j].id == player.id) {
-                        tables[i].seats[j] = null;
-                        tables[i].activeSeats[j] = false;
+        for (j = 0; j < tables[tableId].seats.length; j++) {
+            if(tables[tableId].seats[j] !== null){
+                if (tables[tableId].seats[j].id == player.id) {
+                    tables[tableId].seats[j] = null;
+                    tables[tableId].activeSeats[j] = false;
 
-                        //get the number of players at this table
-                        var playerCount = 0;
-                        for(var k = 0; k < tables[i].seats.length; k++){
-                            if(tables[i].seats[k] !== null){
-                                playerCount += 1;
-                            }
+                    //get the number of players at this table
+                    var playerCount = 0;
+                    for(var k = 0; k < tables[tableId].seats.length; k++){
+                        if(tables[tableId].seats[k] !== null){
+                            playerCount += 1;
                         }
-                        if(playerCount === 0){
-                            //this table has no more players, remove it
-                            tables.splice(i, 1);
-                            console.log("removed table "+i);
-                        }
-                        //TODO: notify client of disconnection
-                        break;
                     }
+                    if(playerCount === 0){
+                        //this table has no more players, remove it
+                        tables.splice(tableId, 1);
+                        console.log("removed table "+tableId);
+                    }
+                    else{
+                        //Notify all players at this table of the disconnection
+                        for(var k = 0; k < tables[tableId].seats.length; k++){
+                            if(tables[tableId].seats[k] !== null){
+                                tables[tableId].seats[k].socket.emit('active players update',tables[tableId].activeSeats);
+                            }
+                        }    
+                    }
+                    break;
                 }
             }
         }
@@ -611,8 +615,23 @@ io.sockets.on('connection', function(socket) {
 
     socket.on('bet locked', function(bet) {
         if (player.wallet >= bet) {
-            player.bet = bet;
-            socket.emit('bet lock confirm', bet);
+            //player has enough money
+
+            //check that this bet does not exceed amount of money that banker has
+            //this amount is defined as banker.wallet/num_players
+
+            var numActivePlayers = 1; //initialize to 1 because of banker
+            for(var j = 0; j < tables[tableId].seats.length; j++){
+                if(tables[tableId].activeSeats[j] === true){
+                    numActivePlayers += 1;
+                }
+            }
+
+            if(tables[tableId].banker === -1 || bet <= tables[tableId].seats[tables[tableId].banker].wallet / numActivePlayers){
+                //TODO verify this
+                player.bet = bet;
+                socket.emit('bet lock confirm', bet);
+            }
 
             var seatsBets = [null,null,null,null,null,null,null];
             for(var j = 0; j < tables[tableId].seats.length; j++){
