@@ -383,15 +383,16 @@ var bet5CropInfo = [540,40,100];   //[x cord, y for +, y for -]
 var bankerButtonInfo = [105,55,140,165,225]; //[width, height, x, y for take, y for skip]
 var handLockInfo = [100,55,265,35,100]; //[width, height ,x cord, y for lock, y for unlock]
 var betLockInfo = [100,55,405,35,100]; //[width, height, x cord, y for lock, y for unlock]
-var bet5ButtonInfo = [600,280,52,52];    //xpos,ypos,width,height
-var betDown5ButtonInfo = [450,280,52,52]; //xpos,ypos,width,height
-var betLockButtonInfo = [500,280,50,25]; //xpos,ypos,width,height
+var bet5ButtonInfo = [600,320,52,52];    //xpos,ypos,width,height
+var betDown5ButtonInfo = [450,320,52,52]; //xpos,ypos,width,height
+var betLockButtonInfo = [500,320,50,25]; //xpos,ypos,width,height
 var selectionLockButtonInfo = [1000,480,50,25]; //xpos,ypos,width,height
 var bankerSelectionInfo = [1000,540,50,25]; //xpos,ypos,width,height
 var highlightTitleInfo = [840,240,100,175]; //[x crop, y crop, width, height]
 //var dealerBankerSymbolLocation = [550,25]; 
 //var bankerSymbolLocations = [[78,156],[117,319],[270,431],[487,459],[718,457],[893,352],[1018,156]];
-var exitButtonInfo = [20,500,50,25]; //x,y,width,height
+var exitButtonInfo = [20,500,105,55,405,163]; //x,y,width,height, x crop, y corp
+var timerBarInfo = [140,293,410,60,340,230]; //xcrop, ycrop, width, height, xcord, ycord  
 
 var dealerBankerSymbolLocation = [450,250-100]; 
 var bankerSymbolLocations = [[450,450+80],[200,450+80],[750,450+80],[50,250+80],[875,250+80],[175,75+80],[750,75+80]];
@@ -693,7 +694,7 @@ $(function(){
     }
 
     var drawTimer = function(){
-        var d = new Date();
+        var d = new Date();   
         var t = (game.stateLength[game.states.indexOf(game.state)]-(d.getTime()-game.lastStateChange))
         t=t/1000;
         t = Math.round(t*10)/10
@@ -704,6 +705,7 @@ $(function(){
         ctx.fillStyle = "#000000";
         ctx.font = '15pt Calibri';
         ctx.fillText(t,1000,50);
+        
     }
 
     var drawPlayerPairHelp = function(){
@@ -827,7 +829,27 @@ $(function(){
 
     drawExitButton = function(){
         ctx.fillStyle = "#000000";
-        ctx.fillRect(exitButtonInfo[0],exitButtonInfo[1],exitButtonInfo[2],exitButtonInfo[3]);
+        //ctx.fillRect(exitButtonInfo[0],exitButtonInfo[1],exitButtonInfo[2],exitButtonInfo[3]);
+        
+        ctx.drawImage(buttonImage,exitButtonInfo[4],exitButtonInfo[5],exitButtonInfo[2],exitButtonInfo[3],exitButtonInfo[0],exitButtonInfo[1],exitButtonInfo[2],exitButtonInfo[3]);
+       
+    }
+    
+    drawTimerBar= function(){ 
+    
+    	  var d1 = new Date();
+    	  var m1 = game.stateLength[game.states.indexOf(game.state)]/1000;
+        var t1 = (game.stateLength[game.states.indexOf(game.state)]-(d1.getTime()-game.lastStateChange))
+        t1=t1/1000;
+        t1 = Math.round(t1*10)/10
+        if(t1<0 || isNaN(t1)){
+            t1 = 0;
+        }
+          	
+    	  ctx.fillStyle = "FF0000";
+    	  var timerBarInfo = [140,293,410,60,340,230]; //xcrop, ycrop, width, height, xcord, ycord  
+    	  ctx.drawImage(buttonImage,timerBarInfo[0],timerBarInfo[1],timerBarInfo[2],timerBarInfo[3],timerBarInfo[4],timerBarInfo[5],timerBarInfo[2],timerBarInfo[3]);
+    	  ctx.fillRect(timerBarInfo[4]+5,timerBarInfo[5]+5,(timerBarInfo[2]-10)*(t1/m1),timerBarInfo[3]-10); 
     }
 
     render = function(){
@@ -839,11 +861,11 @@ $(function(){
         ctx.drawImage(tableImage,0,0,c.width,c.height); 
 
      
-		
+			drawTimerBar();
         //Draw game state
         ctx.fillStyle = "#000000";
-        ctx.font = '15pt Calibri';
-        ctx.fillText("State: "+game.state,20,20);
+        ctx.font = '20pt Calibri';
+        ctx.fillText("State: "+game.state,400,270);
 
         drawBetLockButton();
 
@@ -881,7 +903,7 @@ $(function(){
             ctx.fillText("INSUFFICIENT FUNDS",450,350);
         }
 
-        drawTimer();
+        //drawTimer();
         drawPlayerPairHelp();
         drawDealerPairHelp();
         drawWallets();
@@ -892,7 +914,7 @@ $(function(){
             ctx.font = "30px Arial";
             ctx.fillText("Waiting for start of next round",450,350);
         }
-
+		  
         drawExitButton();
     }
 
