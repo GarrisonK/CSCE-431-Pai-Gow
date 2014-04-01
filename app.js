@@ -505,22 +505,27 @@ io.sockets.on('connection', function(socket) {
     var j;
 
     //look for a seat at an existing table
+    // TODO, update code for multiple tables. Consider using something other than an array
     for(i = 0; i < tables.length; i++){
-        for(j = 0; j < tables[i].seats.length; j++){
-            if(tables[i].seats[j] === null){
-                foundTable = true;
-                addPlayer(tables[i],player);
-                tableId = i;
+        if(tables[i] !== null){
+            for(j = 0; j < tables[i].seats.length; j++){
+                if(tables[i].seats[j] === null){
+                    console.log("adding player to "+i);
+                    foundTable = true;
+                    addPlayer(tables[i],player);
+                    tableId = i;
+                    break;
+                }
+            }
+            if(foundTable){
                 break;
             }
-        }
-        if(foundTable){
-            break;
         }
     }
 
     //could not find a seat for this player, create new table
     if(!foundTable){
+        console.log("making new table");
         var table = new newTable();
         addPlayer(table,player);
         tables.push(table);
@@ -534,13 +539,15 @@ io.sockets.on('connection', function(socket) {
     var banker = -1;
     var occupiedSeats = []; //a copy of the seats array for the players table
     for(i = 0; i < tables.length; i++){
-        for(j = 0; j < tables[i].seats.length; j++){
-            if(tables[i].seats[j] !== null){
-                if(tables[i].seats[j].id == player.id){
-                    seat = j;
-                    banker = tables[i].banker;
-                    occupiedSeats = tables[i].seats;
-                    break;
+        if(tables[i] !== null){
+            for(j = 0; j < tables[i].seats.length; j++){
+                if(tables[i].seats[j] !== null){
+                    if(tables[i].seats[j].id == player.id){
+                        seat = j;
+                        banker = tables[i].banker;
+                        occupiedSeats = tables[i].seats;
+                        break;
+                    }
                 }
             }
         }
@@ -595,7 +602,9 @@ io.sockets.on('connection', function(socket) {
                     }
                     if(playerCount === 0){
                         //this table has no more players, remove it
-                        tables.splice(tableId, 1);
+                        // tables.splice(tableId, 1);
+                        // TODO fix this
+                        tables[tableId] = null;
                         console.log("removed table "+tableId);
                     }
                     else{
@@ -661,22 +670,24 @@ io.sockets.on('connection', function(socket) {
             //find this player, return default selection or last valid selection
             //in normal play, this code should never run
             for (i = 0; i < tables.length; i++) {
-                for (j = 0; j < tables[i].seats.length; j++) {
-                    if (tables[i].seats[j] !== null) {
-                        if (tables[i].seats[j].id == socket.id) {
-                            //found player
-                            if (tables[i].seats[j].tileSelection.length == 2) {
-                                //player has a previous valid selection, reuse
-                                //this
-                                socket.emit('confirm tile selection', pair);
-                            }
-                            else {
-                                //apply the default selection
-                                tables[i].seats[j].tileSelection =
-                                    [tables[i].seats[j].tiles[0],
-                                     tables[i].seats[j].tiles[1]];
-                                socket.emit('confirm tile selection',
-                                            tables[i].seats[j].tileSelection);
+                if(tables[i] !== null){
+                    for (j = 0; j < tables[i].seats.length; j++) {
+                        if (tables[i].seats[j] !== null) {
+                            if (tables[i].seats[j].id == socket.id) {
+                                //found player
+                                if (tables[i].seats[j].tileSelection.length == 2) {
+                                    //player has a previous valid selection, reuse
+                                    //this
+                                    socket.emit('confirm tile selection', pair);
+                                }
+                                else {
+                                    //apply the default selection
+                                    tables[i].seats[j].tileSelection =
+                                        [tables[i].seats[j].tiles[0],
+                                         tables[i].seats[j].tiles[1]];
+                                    socket.emit('confirm tile selection',
+                                                tables[i].seats[j].tileSelection);
+                                }
                             }
                         }
                     }
@@ -685,27 +696,29 @@ io.sockets.on('connection', function(socket) {
         }
         else {
             for (i = 0; i < tables.length; i++) {
-                for (j = 0; j < 7; j++) {
-                    if(tables[i].seats[j] !== null){
-                        if (tables[i].seats[j].id == socket.id) {
-                            for (var k = 0; k < pair.length; k++) {
-                                //check that the player was dealt these tiles
-                                if (tables[i].seats[j].tiles.indexOf(pair[k]) ==
-                                    -1) {
-                                    //the player does not have access to this tile,
-                                    //apply default selection
-                                    tables[i].seats[j].tileSelection =
-                                        [tables[i].seats[j].tiles[0],
-                                         tables[i].seats[j].tiles[1]];
-                                    socket.emit('confirm tile selection',
-                                                tables[i].seats[j].tileSelection);
-                                    return;
+                if(tables[i] !== null){
+                    for (j = 0; j < 7; j++) {
+                        if(tables[i].seats[j] !== null){
+                            if (tables[i].seats[j].id == socket.id) {
+                                for (var k = 0; k < pair.length; k++) {
+                                    //check that the player was dealt these tiles
+                                    if (tables[i].seats[j].tiles.indexOf(pair[k]) ==
+                                        -1) {
+                                        //the player does not have access to this tile,
+                                        //apply default selection
+                                        tables[i].seats[j].tileSelection =
+                                            [tables[i].seats[j].tiles[0],
+                                             tables[i].seats[j].tiles[1]];
+                                        socket.emit('confirm tile selection',
+                                                    tables[i].seats[j].tileSelection);
+                                        return;
+                                    }
                                 }
+                                //at this point, the player has been confirmed to have
+                                //been dealt the tiles in pair
+                                tables[i].seats[j].tileSelection = pair;
+                                break;
                             }
-                            //at this point, the player has been confirmed to have
-                            //been dealt the tiles in pair
-                            tables[i].seats[j].tileSelection = pair;
-                            break;
                         }
                     }
                 }
@@ -717,12 +730,14 @@ io.sockets.on('connection', function(socket) {
     socket.on('pair selection locked', function(pair) {
         //TODO check if player was dealt these tiles
         for (var i = 0; i < tables.length; i++) {
-            for (var j = 0; j < 7; j++) {
-                if (tables[i].seats[j] !== null) {
-                    if (tables[i].seats[j].id == socket.id) {
-                        tables[i].seats[j].tileSelection = pair;
-                        tables[i].seats[j].selectionLocked = true;
-                        socket.emit('confirm selection locked', pair);
+            if(tables[i] !== null){
+                for (var j = 0; j < 7; j++) {
+                    if (tables[i].seats[j] !== null) {
+                        if (tables[i].seats[j].id == socket.id) {
+                            tables[i].seats[j].tileSelection = pair;
+                            tables[i].seats[j].selectionLocked = true;
+                            socket.emit('confirm selection locked', pair);
+                        }
                     }
                 }
             }
@@ -731,11 +746,13 @@ io.sockets.on('connection', function(socket) {
 
     socket.on('pair selection unlocked', function() {
         for (var i = 0; i < tables.length; i++) {
-            for (var j = 0; j < 7; j++) {
-                if (tables[i].seats[j] !== null) {
-                    if (tables[i].seats[j].id == socket.id) {
-                        tables[i].seats[j].selectionLocked = false;
-                        socket.emit('confirm selection unlocked');
+            if(tables[i] !== null){
+                for (var j = 0; j < 7; j++) {
+                    if (tables[i].seats[j] !== null) {
+                        if (tables[i].seats[j].id == socket.id) {
+                            tables[i].seats[j].selectionLocked = false;
+                            socket.emit('confirm selection unlocked');
+                        }
                     }
                 }
             }
@@ -744,11 +761,13 @@ io.sockets.on('connection', function(socket) {
 
     socket.on('bank on turn', function(selection) {
         for (var i = 0; i < tables.length; i++) {
-            for (var j = 0; j < 7; j++) {
-                if (tables[i].seats[j] !== null) {
-                    if (tables[i].seats[j].id == socket.id) {
-                        tables[i].seats[j].bankOnTurn = selection;
-                        break;
+            if(tables[i] !== null){
+                for (var j = 0; j < 7; j++) {
+                    if (tables[i].seats[j] !== null) {
+                        if (tables[i].seats[j].id == socket.id) {
+                            tables[i].seats[j].bankOnTurn = selection;
+                            break;
+                        }
                     }
                 }
             }
@@ -761,304 +780,306 @@ setInterval(function() {
     var d = new Date();
     var time = d.getTime();
     for (var i = 0; i < tables.length; i++) {
-        var j;
-        var k;
-        if (time - tables[i].timeOfLastStateChange > stateLength[gameStates.indexOf(tables[i].state)]) {
-            //this table needs to update
-            console.log("need to update");
-            var currentState = tables[i].state;
-            tables[i].state = gameStates[(gameStates.indexOf(currentState) +
-                                          1) % gameStates.length];
-            console.log("new state for table "+i+": "+tables[i].state);
-            tables[i].timeOfLastStateChange = time;
-            for (j = 0; j < tables[i].seats.length; j++) {
-                if (tables[i].seats[j] !== null) {
-                    tables[i].seats[j].socket.emit('game state change',
-                                                   tables[i].state, time);
-                }
-            }
-
-            if (tables[i].state == 'pregame') {
-
-                //activate all players
-                for(j = 0; j < tables[i].seats.length; j++){
-                    if(tables[i].seats[j] !== null){
-                        tables[i].activeSeats[j] = true;
-                    }
-                }
- 
-                // find the next willing banker
-                // TODO consider possibility of a player connecting during pregame
-
-                var numActivePlayers = 1; //initialize to 1 because of dealer
-                for(j = 0; j < tables[i].seats.length; j++){
-                    if(tables[i].seats[j] !== null && tables[i].activeSeats[j] === true){
-                        numActivePlayers+=1;
-                    }
-                }
-                 while (true) {
-                     tables[i].banker += 1;
-                     if (tables[i].banker == 7) {
-                         tables[i].banker = -1;
-                     }
-                     if(tables[i].banker == -1){
-                        //dealer will bank
-                        break;
-                     }
-                     if (tables[i].seats[tables[i].banker] === null) {
-                         //continue looking for next banker
-                     }
-                     else if (tables[i].seats[tables[i].banker] !==
-                              null && tables[i].seats[tables[i].
-                                                      banker].bankOnTurn ===
-                              false) {
-                        //this player doesn't want to bank
-                     }
-                     else if(tables[i].seats[tables[i].banker].wallet < numActivePlayers*tables[i].minimumBet){
-                        //this player doesn't have enough money to bank
-                        //Must have (number of players)*minimumBet
-                     }
-                     else {
-                        //found a player to be the next banker
-                         break;
-                     }
-                }
-
-                console.log("active seats: "+tables[i].activeSeats);
-
-
-
+        if(tables[i] !== null){
+            var j;
+            var k;
+            if (time - tables[i].timeOfLastStateChange > stateLength[gameStates.indexOf(tables[i].state)]) {
+                //this table needs to update
+                console.log("need to update");
+                var currentState = tables[i].state;
+                tables[i].state = gameStates[(gameStates.indexOf(currentState) +
+                                              1) % gameStates.length];
+                console.log("new state for table "+i+": "+tables[i].state);
+                tables[i].timeOfLastStateChange = time;
                 for (j = 0; j < tables[i].seats.length; j++) {
                     if (tables[i].seats[j] !== null) {
-                        tables[i].seats[j].socket.emit(
-                            'pregame game information', tables[i].banker,tables[i].activeSeats,stateLength);
-                    }
-                }
-            }
-            else if (tables[i].state == "betting"){
-                
-
-                //find out how much money each player has
-                var seatsWallets = [null,null,null,null,null,null,null];
-                for(j = 0; j < tables[i].seats.length; j++){
-                    if(tables[i].seats[j] !== null && tables[i].activeSeats[j] === true){
-                        seatsWallets[j] = tables[i].seats[j].wallet;
+                        tables[i].seats[j].socket.emit('game state change',
+                                                       tables[i].state, time);
                     }
                 }
 
-                //resend the pregame information at the end of pregame
-                //handles cases where players join towards the end of pregame
-                //also send wallet information
-                for (j = 0; j < tables[i].seats.length; j++) {
-                    if (tables[i].seats[j] !== null) {
-                        tables[i].seats[j].socket.emit(
-                            'pregame game information', tables[i].banker,tables[i].activeSeats,stateLength);
-                        tables[i].seats[j].socket.emit('seats wallets',seatsWallets);
-                    }
-                }
-            }
-            else if (tables[i].state == 'dealing') {
-                //let the clients know all of the player's bets
-                var seatsBets = [null,null,null,null,null,null,null];
-                for(j = 0; j < tables[i].seats.length; j++){
-                    if(tables[i].seats[j] !== null && tables[i].activeSeats[j] === true){
-                        seatsBets[j] = tables[i].seats[j].bet;
-                    }
-                }
+                if (tables[i].state == 'pregame') {
 
-                console.log("\n\n\nseats bets "+seatsBets);
-                for(j = 0; j < tables[i].seats.length; j++){
-                    if(tables[i].seats[j] !== null){
-                        tables[i].seats[j].socket.emit('seats bets',seatsBets);
-                    }
-                }
-
-                var count = 0;
-                for (k = 0; k < 4; k++) { //deal 4 tiles each
-                    for (j = 0; j < 7; j++) {
-                        if (tables[i].seats[j] !== null && tables[i].activeSeats[j] === true) {
-                            tables[i].seats[j].tiles.push(
-                                tables[i].deck.tiles[count]); //deal the tile
-                            tables[i].seats[j].socket.emit(
-                                'player dealt', tables[i].deck.tiles[count]);
-                            count += 1;
+                    //activate all players
+                    for(j = 0; j < tables[i].seats.length; j++){
+                        if(tables[i].seats[j] !== null){
+                            tables[i].activeSeats[j] = true;
                         }
                     }
-                    tables[i].dealerTiles.push(tables[i].deck.tiles[count]);
-                    count += 1;
-                }
-                // Set default selection
-                for (k = 0; k < 7; k++) {
-                    if (tables[i].seats[k] !== null && tables[i].activeSeats[k] === true) {
-                        tables[i].seats[k].tileSelection =
-                            [tables[i].seats[k].tiles[0],
-                             tables[i].seats[k].tiles[1]];
-                    }
-                }
-            }
-            else if (tables[i].state == 'tile reveal') {
-                for (j = 0; j < 7; j++) {
-                    if (tables[i].seats[j] !== null && tables[i].activeSeats[j] === true) {
-                        //tell each player their final tile selection
-                        tables[i].seats[j].socket.emit(
-                            'finalize tile selection',
-                            tables[i].seats[j].tileSelection);
-                    }
-                }
-                //reveal all player's tiles
-                for (j = 0; j < 7; j++) {
-                    if (tables[i].seats[j] !== null) {
-                        tables[i].dealerSelection = getBestPairSelection(
-                            tables[i].dealerTiles);
-                        tables[i].seats[j].socket.emit(
-                            'other player tiles', 'dealer',
-                            tables[i].dealerTiles,
-                            tables[i].dealerSelection);
-                        for (k = 0; k < 7; k++) {
-                            if (tables[i].seats[k] !== null && tables[i].activeSeats[k] === true) {
-                                tables[i].seats[j].socket.emit(
-                                    'other player tiles',
-                                    tables[i].seats[k].id,
-                                    tables[i].seats[k].tiles,
-                                    tables[i].seats[k].tileSelection);
-                            }
+     
+                    // find the next willing banker
+                    // TODO consider possibility of a player connecting during pregame
+
+                    var numActivePlayers = 1; //initialize to 1 because of dealer
+                    for(j = 0; j < tables[i].seats.length; j++){
+                        if(tables[i].seats[j] !== null && tables[i].activeSeats[j] === true){
+                            numActivePlayers+=1;
                         }
                     }
-                }
+                     while (true) {
+                         tables[i].banker += 1;
+                         if (tables[i].banker == 7) {
+                             tables[i].banker = -1;
+                         }
+                         if(tables[i].banker == -1){
+                            //dealer will bank
+                            break;
+                         }
+                         if (tables[i].seats[tables[i].banker] === null) {
+                             //continue looking for next banker
+                         }
+                         else if (tables[i].seats[tables[i].banker] !==
+                                  null && tables[i].seats[tables[i].
+                                                          banker].bankOnTurn ===
+                                  false) {
+                            //this player doesn't want to bank
+                         }
+                         else if(tables[i].seats[tables[i].banker].wallet < numActivePlayers*tables[i].minimumBet){
+                            //this player doesn't have enough money to bank
+                            //Must have (number of players)*minimumBet
+                         }
+                         else {
+                            //found a player to be the next banker
+                             break;
+                         }
+                    }
 
-                //now reveal winners and payout
-                if (tables[i].banker == -1) {
-                    //dealer is the banker
+                    console.log("active seats: "+tables[i].activeSeats);
+
+
 
                     for (j = 0; j < tables[i].seats.length; j++) {
-                        if (tables[i].seats[j] !== null && tables[i].activeSeats[j] === true) {
-                            var roundWinner = getRoundWinner(
-                                tables[i].dealerTiles,
-                                tables[i].dealerSelection,
-                                tables[i].seats[j].tiles,
-                                tables[i].seats[j].tileSelection);
-                            if (roundWinner == 1) {
-                                //banker win
-                                tables[i].seats[j].socket.emit(
-                                    'match result', 'banker win');
-                                tables[i].seats[j].wallet -=
-                                    tables[i].seats[j].bet;
-                                tables[i].seats[j].socket.emit(
-                                    'wallet update',
-                                    tables[i].seats[j].wallet);
-                            }
-                            else if (roundWinner == 2) {
-                                //opponent win
-                                tables[i].seats[j].socket.emit(
-                                    'match result', 'opponent win');
-                                tables[i].seats[j].wallet +=
-                                tables[i].seats[j].bet;
-                                tables[i].seats[j].socket.emit(
-                                    'wallet update', tables[i].seats[j].wallet);
-                            }
-                            else {
-                                //push
-                                tables[i].seats[j].socket.emit(
-                                    'match result', 'push');
-                            }
+                        if (tables[i].seats[j] !== null) {
+                            tables[i].seats[j].socket.emit(
+                                'pregame game information', tables[i].banker,tables[i].activeSeats,stateLength);
                         }
                     }
                 }
-                else {
-                    //dealer is not the banker
+                else if (tables[i].state == "betting"){
+                    
 
-                    //first, compare the dealer tiles to the banker
-                    var proundWinner = getRoundWinner(
-                        tables[i].seats[tables[i].banker].tiles,
-                        tables[i].seats[tables[i].banker].tileSelection,
-                        tables[i].dealerTiles,
-                        tables[i].dealerSelection);
-                    if (proundWinner == 1) {
-                        //banker wins
-                        tables[i].seats[tables[i].banker].socket.emit(
-                            'match result', 'banker win');
-                        tables[i].seats[tables[i].banker].wallet +=
-                        tables[i].minimumBet;
-                        console.log('new wallet: ' +
-                                    tables[i].seats[tables[i].banker].wallet);
-                        tables[i].seats[tables[i].banker].socket.emit(
-                            'wallet update',
-                            tables[i].seats[tables[i].banker].wallet);
+                    //find out how much money each player has
+                    var seatsWallets = [null,null,null,null,null,null,null];
+                    for(j = 0; j < tables[i].seats.length; j++){
+                        if(tables[i].seats[j] !== null && tables[i].activeSeats[j] === true){
+                            seatsWallets[j] = tables[i].seats[j].wallet;
+                        }
                     }
-                    else if (proundWinner == 2) {
-                        //dealer wins
-                        tables[i].seats[tables[i].banker].socket.emit(
-                            'match result', 'opponent win');
-                        tables[i].seats[tables[i].banker].wallet -=
-                            tables[i].minimumBet;
-                        tables[i].seats[tables[i].banker].socket.emit(
-                            'wallet update',
-                            tables[i].seats[tables[i].banker].wallet);
+
+                    //resend the pregame information at the end of pregame
+                    //handles cases where players join towards the end of pregame
+                    //also send wallet information
+                    for (j = 0; j < tables[i].seats.length; j++) {
+                        if (tables[i].seats[j] !== null) {
+                            tables[i].seats[j].socket.emit(
+                                'pregame game information', tables[i].banker,tables[i].activeSeats,stateLength);
+                            tables[i].seats[j].socket.emit('seats wallets',seatsWallets);
+                        }
+                    }
+                }
+                else if (tables[i].state == 'dealing') {
+                    //let the clients know all of the player's bets
+                    var seatsBets = [null,null,null,null,null,null,null];
+                    for(j = 0; j < tables[i].seats.length; j++){
+                        if(tables[i].seats[j] !== null && tables[i].activeSeats[j] === true){
+                            seatsBets[j] = tables[i].seats[j].bet;
+                        }
+                    }
+
+                    console.log("\n\n\nseats bets "+seatsBets);
+                    for(j = 0; j < tables[i].seats.length; j++){
+                        if(tables[i].seats[j] !== null){
+                            tables[i].seats[j].socket.emit('seats bets',seatsBets);
+                        }
+                    }
+
+                    var count = 0;
+                    for (k = 0; k < 4; k++) { //deal 4 tiles each
+                        for (j = 0; j < 7; j++) {
+                            if (tables[i].seats[j] !== null && tables[i].activeSeats[j] === true) {
+                                tables[i].seats[j].tiles.push(
+                                    tables[i].deck.tiles[count]); //deal the tile
+                                tables[i].seats[j].socket.emit(
+                                    'player dealt', tables[i].deck.tiles[count]);
+                                count += 1;
+                            }
+                        }
+                        tables[i].dealerTiles.push(tables[i].deck.tiles[count]);
+                        count += 1;
+                    }
+                    // Set default selection
+                    for (k = 0; k < 7; k++) {
+                        if (tables[i].seats[k] !== null && tables[i].activeSeats[k] === true) {
+                            tables[i].seats[k].tileSelection =
+                                [tables[i].seats[k].tiles[0],
+                                 tables[i].seats[k].tiles[1]];
+                        }
+                    }
+                }
+                else if (tables[i].state == 'tile reveal') {
+                    for (j = 0; j < 7; j++) {
+                        if (tables[i].seats[j] !== null && tables[i].activeSeats[j] === true) {
+                            //tell each player their final tile selection
+                            tables[i].seats[j].socket.emit(
+                                'finalize tile selection',
+                                tables[i].seats[j].tileSelection);
+                        }
+                    }
+                    //reveal all player's tiles
+                    for (j = 0; j < 7; j++) {
+                        if (tables[i].seats[j] !== null) {
+                            tables[i].dealerSelection = getBestPairSelection(
+                                tables[i].dealerTiles);
+                            tables[i].seats[j].socket.emit(
+                                'other player tiles', 'dealer',
+                                tables[i].dealerTiles,
+                                tables[i].dealerSelection);
+                            for (k = 0; k < 7; k++) {
+                                if (tables[i].seats[k] !== null && tables[i].activeSeats[k] === true) {
+                                    tables[i].seats[j].socket.emit(
+                                        'other player tiles',
+                                        tables[i].seats[k].id,
+                                        tables[i].seats[k].tiles,
+                                        tables[i].seats[k].tileSelection);
+                                }
+                            }
+                        }
+                    }
+
+                    //now reveal winners and payout
+                    if (tables[i].banker == -1) {
+                        //dealer is the banker
+
+                        for (j = 0; j < tables[i].seats.length; j++) {
+                            if (tables[i].seats[j] !== null && tables[i].activeSeats[j] === true) {
+                                var roundWinner = getRoundWinner(
+                                    tables[i].dealerTiles,
+                                    tables[i].dealerSelection,
+                                    tables[i].seats[j].tiles,
+                                    tables[i].seats[j].tileSelection);
+                                if (roundWinner == 1) {
+                                    //banker win
+                                    tables[i].seats[j].socket.emit(
+                                        'match result', 'banker win');
+                                    tables[i].seats[j].wallet -=
+                                        tables[i].seats[j].bet;
+                                    tables[i].seats[j].socket.emit(
+                                        'wallet update',
+                                        tables[i].seats[j].wallet);
+                                }
+                                else if (roundWinner == 2) {
+                                    //opponent win
+                                    tables[i].seats[j].socket.emit(
+                                        'match result', 'opponent win');
+                                    tables[i].seats[j].wallet +=
+                                    tables[i].seats[j].bet;
+                                    tables[i].seats[j].socket.emit(
+                                        'wallet update', tables[i].seats[j].wallet);
+                                }
+                                else {
+                                    //push
+                                    tables[i].seats[j].socket.emit(
+                                        'match result', 'push');
+                                }
+                            }
+                        }
                     }
                     else {
-                        //push
-                        tables[i].seats[tables[i].banker].socket.emit(
-                            'match result', 'push');
-                    }
+                        //dealer is not the banker
 
-                    //now compare all other players against the banker
-                    for(j = 0; j < tables[i].seats.length; j++){
-                        if(tables[i].seats[j] !== null && tables[i].banker != j && tables[i].activeSeats[j] === true){
-                            var pvproundWinner = getRoundWinner(tables[i].seats[tables[i].banker].tiles,
-                                tables[i].seats[tables[i].banker].tileSelection,
-                                tables[i].seats[j].tiles,
-                                tables[i].seats[j].tileSelection);
-                            console.log("\n\n\n\nResult: "+pvproundWinner+"\n\n\n\n");
-                            if(pvproundWinner == 1){
-                                //banker win
-                                tables[i].seats[tables[i].banker].socket.emit('match result','banker win');
-                                tables[i].seats[j].socket.emit('match result','banker win');
-                                tables[i].seats[tables[i].banker].wallet += tables[i].seats[j].bet;
-                                tables[i].seats[j].wallet -= tables[i].seats[j].bet;
-                                tables[i].seats[tables[i].banker].socket.emit('wallet update',tables[i].seats[tables[i].banker].wallet);
-                                tables[i].seats[j].socket.emit('wallet update',tables[i].seats[j].wallet);
-                            }
-                            else if(pvproundWinner == 2){
-                                //opponent win
-                                tables[i].seats[tables[i].banker].socket.emit('match result','opponent win');
-                                tables[i].seats[j].socket.emit('match result','opponent win');
-                                tables[i].seats[tables[i].banker].wallet -= tables[i].seats[j].bet;
-                                tables[i].seats[j].wallet += tables[i].seats[j].bet;
-                                tables[i].seats[tables[i].banker].socket.emit('wallet update',tables[i].seats[tables[i].banker].wallet);
-                                tables[i].seats[j].socket.emit('wallet update',tables[i].seats[j].wallet);
-                            }
-                            else{
-                                tables[i].seats[tables[i].banker].socket.emit('match result','push');
-                                tables[i].seats[j].socket.emit('match result','push');
+                        //first, compare the dealer tiles to the banker
+                        var proundWinner = getRoundWinner(
+                            tables[i].seats[tables[i].banker].tiles,
+                            tables[i].seats[tables[i].banker].tileSelection,
+                            tables[i].dealerTiles,
+                            tables[i].dealerSelection);
+                        if (proundWinner == 1) {
+                            //banker wins
+                            tables[i].seats[tables[i].banker].socket.emit(
+                                'match result', 'banker win');
+                            tables[i].seats[tables[i].banker].wallet +=
+                            tables[i].minimumBet;
+                            console.log('new wallet: ' +
+                                        tables[i].seats[tables[i].banker].wallet);
+                            tables[i].seats[tables[i].banker].socket.emit(
+                                'wallet update',
+                                tables[i].seats[tables[i].banker].wallet);
+                        }
+                        else if (proundWinner == 2) {
+                            //dealer wins
+                            tables[i].seats[tables[i].banker].socket.emit(
+                                'match result', 'opponent win');
+                            tables[i].seats[tables[i].banker].wallet -=
+                                tables[i].minimumBet;
+                            tables[i].seats[tables[i].banker].socket.emit(
+                                'wallet update',
+                                tables[i].seats[tables[i].banker].wallet);
+                        }
+                        else {
+                            //push
+                            tables[i].seats[tables[i].banker].socket.emit(
+                                'match result', 'push');
+                        }
+
+                        //now compare all other players against the banker
+                        for(j = 0; j < tables[i].seats.length; j++){
+                            if(tables[i].seats[j] !== null && tables[i].banker != j && tables[i].activeSeats[j] === true){
+                                var pvproundWinner = getRoundWinner(tables[i].seats[tables[i].banker].tiles,
+                                    tables[i].seats[tables[i].banker].tileSelection,
+                                    tables[i].seats[j].tiles,
+                                    tables[i].seats[j].tileSelection);
+                                console.log("\n\n\n\nResult: "+pvproundWinner+"\n\n\n\n");
+                                if(pvproundWinner == 1){
+                                    //banker win
+                                    tables[i].seats[tables[i].banker].socket.emit('match result','banker win');
+                                    tables[i].seats[j].socket.emit('match result','banker win');
+                                    tables[i].seats[tables[i].banker].wallet += tables[i].seats[j].bet;
+                                    tables[i].seats[j].wallet -= tables[i].seats[j].bet;
+                                    tables[i].seats[tables[i].banker].socket.emit('wallet update',tables[i].seats[tables[i].banker].wallet);
+                                    tables[i].seats[j].socket.emit('wallet update',tables[i].seats[j].wallet);
+                                }
+                                else if(pvproundWinner == 2){
+                                    //opponent win
+                                    tables[i].seats[tables[i].banker].socket.emit('match result','opponent win');
+                                    tables[i].seats[j].socket.emit('match result','opponent win');
+                                    tables[i].seats[tables[i].banker].wallet -= tables[i].seats[j].bet;
+                                    tables[i].seats[j].wallet += tables[i].seats[j].bet;
+                                    tables[i].seats[tables[i].banker].socket.emit('wallet update',tables[i].seats[tables[i].banker].wallet);
+                                    tables[i].seats[j].socket.emit('wallet update',tables[i].seats[j].wallet);
+                                }
+                                else{
+                                    tables[i].seats[tables[i].banker].socket.emit('match result','push');
+                                    tables[i].seats[j].socket.emit('match result','push');
+                                }
                             }
                         }
+
                     }
 
                 }
-
-            }
-            else if (tables[i].state == 'endgame') {
-                //reset all game information, shuffle deck
-                for (j = 0; j < tables[i].seats.length; j++) {
-                    if (tables[i].seats[j] !== null) {
-                        tables[i].seats[j].tiles = [];
-                        tables[i].seats[j].tileSelection = [];
-                        tables[i].seats[j].selectionLocked = false;
-                        tables[i].seats[j].bet = tables[i].minimumBet;
+                else if (tables[i].state == 'endgame') {
+                    //reset all game information, shuffle deck
+                    for (j = 0; j < tables[i].seats.length; j++) {
+                        if (tables[i].seats[j] !== null) {
+                            tables[i].seats[j].tiles = [];
+                            tables[i].seats[j].tileSelection = [];
+                            tables[i].seats[j].selectionLocked = false;
+                            tables[i].seats[j].bet = tables[i].minimumBet;
+                        }
                     }
-                }
-                tables[i].shuffle();
-                tables[i].dealerTiles = [];
-                tables[i].dealerSelection = [];
+                    tables[i].shuffle();
+                    tables[i].dealerTiles = [];
+                    tables[i].dealerSelection = [];
 
-                //Kick players without sufficient money
-                for (j = 0; j < tables[i].seats.length; j++) {
-                    if (tables[i].seats[j] !== null) {
-                        if (tables[i].seats[j].wallet < tables[i].minimumBet) {
-                            //This player doesn't have enough money to play
-                            tables[i].seats[j].socket.emit(
-                                'insufficient funds');
-                            tables[i].seats[j] = null;
+                    //Kick players without sufficient money
+                    for (j = 0; j < tables[i].seats.length; j++) {
+                        if (tables[i].seats[j] !== null) {
+                            if (tables[i].seats[j].wallet < tables[i].minimumBet) {
+                                //This player doesn't have enough money to play
+                                tables[i].seats[j].socket.emit(
+                                    'insufficient funds');
+                                tables[i].seats[j] = null;
+                            }
                         }
                     }
                 }

@@ -1058,6 +1058,7 @@ $(function(){   //document is ready
         if(state == 'endgame'){
             resetGameInfo();
             if(game.exitOnRoundEnd){
+                socket.disconnect();
                 window.location.replace("./exitPage.html");
             }
         }
