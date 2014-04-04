@@ -412,6 +412,7 @@ var newPlayer = function(name, id, socket, minimumBet) {
     this.tiles = [];
     this.tileSelection = [];
     this.selectionLocked = false;
+    this.betLocked = false;
     this.bankOnTurn = true;
 };
 
@@ -434,6 +435,7 @@ var newTable = function() {
     this.dealerTiles = [];
     this.dealerSelection = [];
     this.activeSeats = [false,false,false,false,false,false,false];
+    this.advanceState = false;
 };
 
 var addPlayer = function(table, player) {
@@ -656,11 +658,28 @@ io.sockets.on('connection', function(socket) {
                     tables[tableId].seats[j].socket.emit("seats bets",seatsBets);
                 }
             }
+
+            tables[tableId].seats[seat].betLocked = true;
+            //TOOD check if all bets are locked
+            var allLocked = true;
+            for(j = 0; j < tables[tableId].seats.length; j++){
+                if(tables[tableId].seats[j] !== null){
+                    if(tables[tableId].seats[j].betLocked === false && tables[tableId].activeSeats[j] === true){
+                        allLocked = false;
+                        break;
+                    }
+                }
+            }
+
+            if(allLocked && tables[tableId].state === "betting"){
+                tables[tableId].advanceState = true;
+            }
         }
     });
 
     socket.on('bet unlocked', function() {
         socket.emit('bet unlock confirm');
+        tables[tableId].seats[seat].betLocked = false;
     });
 
     socket.on('tile selection', function(pair) {
@@ -783,8 +802,9 @@ setInterval(function() {
         if(tables[i] !== null){
             var j;
             var k;
-            if (time - tables[i].timeOfLastStateChange > stateLength[gameStates.indexOf(tables[i].state)]) {
+            if (time - tables[i].timeOfLastStateChange > stateLength[gameStates.indexOf(tables[i].state)] || tables[i].advanceState === true) {
                 //this table needs to update
+                tables[i].advanceState = false;
                 console.log("need to update");
                 var currentState = tables[i].state;
                 tables[i].state = gameStates[(gameStates.indexOf(currentState) +
@@ -857,6 +877,17 @@ setInterval(function() {
                 }
                 else if (tables[i].state == "betting"){
                     
+                    //set all players bet lock state
+                    for(j = 0; j < tables[i].seats.length; j++){
+                        if(tables[i].seats[j] !== null){
+                            if(j == tables[i].banker){
+                                tables[i].seats[j].betLocked = true;
+                            }
+                            else{
+                                tables[i].seats[j].betLocked = false;
+                            }
+                        }
+                    }
 
                     //find out how much money each player has
                     var seatsWallets = [null,null,null,null,null,null,null];
@@ -1056,6 +1087,20 @@ setInterval(function() {
 
                     }
 
+                    var seatsWallets = [null,null,null,null,null,null,null];
+                    for(j = 0; j < tables[i].seats.length; j++){
+                        if(tables[i].seats[j] !== null){
+                            seatsWallets[j] = tables[i].seats[j].wallet;
+                        }
+                    }
+
+
+                    for(j = 0; j < tables[i].seats.length; j++){
+                        if(tables[i].seats[j] !== null){
+                            tables[i].seats[j].socket.emit('seats wallets',seatsWallets);
+                        }
+                    }
+
                 }
                 else if (tables[i].state == 'endgame') {
                     //reset all game information, shuffle deck
@@ -1070,8 +1115,10 @@ setInterval(function() {
                     tables[i].shuffle();
                     tables[i].dealerTiles = [];
                     tables[i].dealerSelection = [];
+                    var seatsWallets = [null,null,null,null,null,null,null];
 
                     //Kick players without sufficient money
+                    // also, check wallets
                     for (j = 0; j < tables[i].seats.length; j++) {
                         if (tables[i].seats[j] !== null) {
                             if (tables[i].seats[j].wallet < tables[i].minimumBet) {
@@ -1079,6 +1126,9 @@ setInterval(function() {
                                 tables[i].seats[j].socket.emit(
                                     'insufficient funds');
                                 tables[i].seats[j] = null;
+                            }
+                            else{
+                                seatsWallets[j] = tables[i].seats[j].wallet;
                             }
                         }
                     }
