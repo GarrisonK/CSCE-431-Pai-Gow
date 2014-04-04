@@ -761,6 +761,20 @@ io.sockets.on('connection', function(socket) {
                 }
             }
         }
+
+        var allLocked = true;
+        for(j = 0; j < tables[tableId].seats.length; j++){
+            if(tables[tableId].seats[j] !== null){
+                if(tables[tableId].seats[j].selectionLocked === false && tables[tableId].activeSeats[j] === true){
+                    allLocked = false;
+                    break;
+                }
+            }
+        }
+
+        if(allLocked && tables[tableId].state === "pair selection"){
+            tables[tableId].advanceState = true;
+        }
     });
 
     socket.on('pair selection unlocked', function() {
