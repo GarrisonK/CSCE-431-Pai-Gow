@@ -3,6 +3,7 @@ sio = require('socket.io'),
 index = require('fs').readFileSync(__dirname + '/index.html'),
 fs = require('fs'),
 url = require('url');
+var util = require('util');
 
 var dots = [3, 6, 12, 12, 2, 2, 8, 8, 4, 4, 10, 10, 6, 6, 4, 4, 11, 11, 10, 10,
             7, 7, 6, 6, 9, 9, 8, 8, 7, 7, 5, 5];
@@ -380,8 +381,59 @@ function getRoundWinner(bankerTiles, bankerSelection, opTiles, opSelection) {
 
 }
 
+playerExists = function(player,email){
+    var options = {
+      host: "heroku-team-bankin.herokuapp.com",
+      path: '/services/account/exists/'+email
+    };
+
+    var callback = function(response){
+        var str = '';
+
+        response.on('data', function (chunk) {
+        str += chunk;
+      });
+
+          //the whole response has been recieved, so we just print it out here
+          response.on('end', function () {
+            if(str === "true"){
+                assignTable();
+            }
+            else{
+                //TODO kick player
+            }
+          });
+    }
+
+    http.request(options, callback).end();
+}
+
 getPlayerName = function(id){
     //TODO complete function stub
+
+    var options = {
+      host: "heroku-team-bankin.herokuapp.com",
+      path: '/services/account/exists/'+id
+    };
+
+    console.log(options);
+
+    var callback = function(response){
+        var str = '';
+
+        response.on('data', function (chunk) {
+        str += chunk;
+      });
+
+      //the whole response has been recieved, so we just print it out here
+      response.on('end', function () {
+        console.log("RESULT: "+str);
+      });
+    }
+
+    http.request(options, callback).end();
+
+    console.log("here");
     return "Bob";
 };
 
@@ -414,6 +466,8 @@ var newPlayer = function(name, id, socket, minimumBet) {
     this.selectionLocked = false;
     this.betLocked = false;
     this.bankOnTurn = true;
+    this.nameFound = false;
+    this.playerFound = false;
 };
 
 var newTable = function() {
@@ -497,92 +551,105 @@ io.set('log level',1); //dont log so much debugging stuff
 
 io.sockets.on('connection', function(socket) {
 
+    // getPlayerName('coolguy9');
+
     var id = socket.id;
-    var player = new newPlayer(getPlayerName(id), id, socket, minimumBet);
-    player.wallet = getPlayerWallet(id);
-    var foundTable = false;
-    var tableId = -1;
+    // var player = new newPlayer(name, id, socket, minimumBet);
+    var player = new newPlayer("name", id, socket, minimumBet);
 
-    var i;
-    var j;
+    var name = playerExists(player,'coolguy9');
+    var tableId;
+    var seat;
+    
+    assignTable = function(){
+        console.log("Name found: "+player.playerExists);
 
-    //look for a seat at an existing table
-    // TODO, update code for multiple tables. Consider using something other than an array
-    for(i = 0; i < tables.length; i++){
-        if(tables[i] !== null){
-            for(j = 0; j < tables[i].seats.length; j++){
-                if(tables[i].seats[j] === null){
-                    console.log("adding player to "+i);
-                    foundTable = true;
-                    addPlayer(tables[i],player);
-                    tableId = i;
+
+        player.wallet = getPlayerWallet(id);
+        var foundTable = false;
+        tableId = -1;
+
+        var i;
+        var j;
+
+        //look for a seat at an existing table
+        // TODO, update code for multiple tables. Consider using something other than an array
+        for(i = 0; i < tables.length; i++){
+            if(tables[i] !== null){
+                for(j = 0; j < tables[i].seats.length; j++){
+                    if(tables[i].seats[j] === null){
+                        console.log("adding player to "+i);
+                        foundTable = true;
+                        addPlayer(tables[i],player);
+                        tableId = i;
+                        break;
+                    }
+                }
+                if(foundTable){
                     break;
                 }
             }
-            if(foundTable){
-                break;
-            }
         }
-    }
 
-    //could not find a seat for this player, create new table
-    if(!foundTable){
-        console.log("making new table");
-        var table = new newTable();
-        addPlayer(table,player);
-        tables.push(table);
-        tableId = tables.length-1;
-    }
+        //could not find a seat for this player, create new table
+        if(!foundTable){
+            console.log("making new table");
+            var table = new newTable();
+            addPlayer(table,player);
+            tables.push(table);
+            tableId = tables.length-1;
+        }
 
-    console.log("table id: "+tableId);
+        console.log("table id: "+tableId);
 
-    //determine which seat the player was placed at
-    var seat = -1;
-    var banker = -1;
-    var occupiedSeats = []; //a copy of the seats array for the players table
-    for(i = 0; i < tables.length; i++){
-        if(tables[i] !== null){
-            for(j = 0; j < tables[i].seats.length; j++){
-                if(tables[i].seats[j] !== null){
-                    if(tables[i].seats[j].id == player.id){
-                        seat = j;
-                        banker = tables[i].banker;
-                        occupiedSeats = tables[i].seats;
-                        break;
+        //determine which seat the player was placed at
+        seat = -1;
+        var banker = -1;
+        var occupiedSeats = []; //a copy of the seats array for the players table
+        for(i = 0; i < tables.length; i++){
+            if(tables[i] !== null){
+                for(j = 0; j < tables[i].seats.length; j++){
+                    if(tables[i].seats[j] !== null){
+                        if(tables[i].seats[j].id == player.id){
+                            seat = j;
+                            banker = tables[i].banker;
+                            occupiedSeats = tables[i].seats;
+                            break;
+                        }
                     }
                 }
             }
         }
-    }
 
-    var occupied = [0,0,0,0,0,0,0]; //contains the ids for the players in each seat, 0 if empty.
-    for(i = 0; i < occupiedSeats.length; i++){
-        if(occupiedSeats[i] === null){
-            occupied[i] = 0;
+        var occupied = [0,0,0,0,0,0,0]; //contains the ids for the players in each seat, 0 if empty.
+        for(i = 0; i < occupiedSeats.length; i++){
+            if(occupiedSeats[i] === null){
+                occupied[i] = 0;
+            }
+            else{
+                occupied[i] = occupiedSeats[i].id;
+            }
         }
-        else{
-            occupied[i] = occupiedSeats[i].id;
-        }
-    }
 
-    //find out how much money each player has
-    var seatsWallets = [null,null,null,null,null,null,null];
-    for(j = 0; j < tables[tableId].seats.length; j++){
-        if(tables[tableId].seats[j] !== null && tables[tableId].activeSeats[j] === true){
-            seatsWallets[j] = tables[tableId].seats[j].wallet;
+        //find out how much money each player has
+        var seatsWallets = [null,null,null,null,null,null,null];
+        for(j = 0; j < tables[tableId].seats.length; j++){
+            if(tables[tableId].seats[j] !== null && tables[tableId].activeSeats[j] === true){
+                seatsWallets[j] = tables[tableId].seats[j].wallet;
+            }
         }
-    }
-    tables[tableId].seatsWallets = seatsWallets;
+        tables[tableId].seatsWallets = seatsWallets;
 
-    var d = new Date();
-    socket.emit('connection acknowledgment', player.wallet, player.bet,
-                d.getTime(), banker,seat,tables[tableId].activeSeats,tables[tableId].seatsWallets);
+        var d = new Date();
+        socket.emit('connection acknowledgment', player.wallet, player.bet,
+                    d.getTime(), banker,seat,tables[tableId].activeSeats,tables[tableId].seatsWallets);
 
-    for(i = 0; i < occupiedSeats.length; i++){
-        if(occupiedSeats[i] !== null){
-            occupiedSeats[i].socket.emit('occupied seats',occupied);
+        for(i = 0; i < occupiedSeats.length; i++){
+            if(occupiedSeats[i] !== null){
+                occupiedSeats[i].socket.emit('occupied seats',occupied);
+            }
         }
-    }
+    };
 
     socket.on('disconnect', function() {
         console.log('disconnect ' + player.name);
