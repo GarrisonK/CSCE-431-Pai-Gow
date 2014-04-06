@@ -562,6 +562,26 @@ var app = http.createServer(function(req, res) {
         res.writeHead(200, {'Content-Type' : 'image/png'});
         res.end(table, 'binary');
     }
+    else if (action == '/sound/betUp.wav') {
+        var betUpSound = fs.readFileSync('./sound/betUp.wav');
+        res.writeHead(200, {'Content-Type' : 'audio/x-wav'});
+        res.end(betUpSound, 'binary');
+    }
+    else if (action == '/sound/betDown.mp3') {
+        var betDownSound = fs.readFileSync('./sound/betDown.mp3');
+        res.writeHead(200, {'Content-Type' : 'audio/mpeg'});
+        res.end(betDownSound, 'binary');
+    }
+    else if (action == '/sound/buttonClick.mp3') {
+        var clickSound = fs.readFileSync('./sound/buttonClick.mp3');
+        res.writeHead(200, {'Content-Type' : 'audio/mpeg'});
+        res.end(clickSound, 'binary');
+    }
+     else if (action == '/sound/Shuffle.mp3') {
+        var shuffle = fs.readFileSync('./sound/Shuffle.mp3');
+        res.writeHead(200, {'Content-Type' : 'audio/mpeg'});
+        res.end(shuffle, 'binary');
+    }
     else if(action == '/exitPage.html'){
         var exitPage = fs.readFileSync('./exitPage.html');
         res.writeHead(200, {'content-Type' : 'text/html'});

@@ -373,20 +373,21 @@ function getRoundWinner(bankerTiles, bankerSelection, opTiles, opSelection){
 
 
 
-
+var unmute = true;
 var tileWidth = 75;
 var tileHeight = 150;
 var tileScale = .5;
 var titleBlankCropInfo = [850,70]; // [x,y]
 var bankerCropInfo = [15,15,100,100];
 var bet5CropInfo = [540,40,100];   //[x cord, y for +, y for -]
+var muteButtonInfo = [100,55,1000,480,15,165,230]; //[width, height, x, y for mute, y for umute]
 var bankerButtonInfo = [105,55,140,165,225]; //[width, height, x, y for take, y for skip]
 var handLockInfo = [100,55,265,35,100]; //[width, height ,x cord, y for lock, y for unlock]
 var betLockInfo = [100,55,405,35,100]; //[width, height, x cord, y for lock, y for unlock]
 var bet5ButtonInfo = [600,320,52,52];    //xpos,ypos,width,height
 var betDown5ButtonInfo = [450,320,52,52]; //xpos,ypos,width,height
 var betLockButtonInfo = [500,320,50,25]; //xpos,ypos,width,height
-var selectionLockButtonInfo = [1000,480,50,25]; //xpos,ypos,width,height
+var selectionLockButtonInfo = [500,320,50,25]; //xpos,ypos,width,height
 var bankerSelectionInfo = [1000,540,50,25]; //xpos,ypos,width,height
 var highlightTitleInfo = [840,240,100,175]; //[x crop, y crop, width, height]
 //var dealerBankerSymbolLocation = [550,25]; 
@@ -435,6 +436,7 @@ $(function(){
     var tileImage = new Image();
     var buttonImage = new Image();
     var tableImage = new Image();
+    var shuffle = new Audio("/sound/Shuffle.mp3");
     var tileReady = false;
     tileImage.src = "/tiles.png";
     buttonImage.src = "/buttons.png";
@@ -830,6 +832,15 @@ $(function(){
     	  ctx.drawImage(buttonImage,timerBarInfo[0],timerBarInfo[1],timerBarInfo[2],timerBarInfo[3],timerBarInfo[4],timerBarInfo[5],timerBarInfo[2],timerBarInfo[3]);
     	  ctx.fillRect(timerBarInfo[4]+5,timerBarInfo[5]+5,(timerBarInfo[2]-10)*(t1/m1),timerBarInfo[3]-10); 
     }
+    
+    drawMuteButton = function(){
+    		
+         if(unmute)    									  
+    			ctx.drawImage(buttonImage,muteButtonInfo[4],muteButtonInfo[5],muteButtonInfo[0],muteButtonInfo[1],muteButtonInfo[2],muteButtonInfo[3],muteButtonInfo[0],muteButtonInfo[1]);
+    		else 
+    		   ctx.drawImage(buttonImage,muteButtonInfo[4],muteButtonInfo[6],muteButtonInfo[0],muteButtonInfo[1],muteButtonInfo[2],muteButtonInfo[3],muteButtonInfo[0],muteButtonInfo[1]);
+    			
+    }
 
     render = function(){
         
@@ -844,16 +855,27 @@ $(function(){
             ctx.fillStyle = "#F0FFFF";
             ctx.fillRect(0,0,c.width,c.height);
             ctx.drawImage(tableImage,0,0,c.width,c.height); 
-
+					
          
     			drawTimerBar();
             //Draw game state
             ctx.fillStyle = "#000000";
             ctx.font = '20pt Calibri';
             ctx.fillText("State: "+game.state,400,270);
-
-            drawBetLockButton();
-
+				if(game.state == "dealing" && unmute)
+				{					
+					shuffle.play();
+				}
+				if(game.state == "betting")
+				{
+            	drawBetLockButton();
+            	drawWagers();
+           	   drawBettingButtons();
+            }
+            if(game.state == "pair selection")
+            {
+            	drawSelectionLockButtons();
+				}
             ctx.fillStyle = "#000000";
             ctx.font = '15pt Calibri';
             ctx.fillText("Wallet: "+game.wallet,0,c.height);
@@ -878,9 +900,8 @@ $(function(){
             highlightSelection();
             highlightDealerSelection();
             // drawTileBack(50,50);
-            drawWagers();
-            drawBettingButtons();
-            drawSelectionLockButtons();
+            
+            
 
             if(!game.playerActive){
                 ctx.fillStyle = "#000000";
@@ -899,7 +920,7 @@ $(function(){
                 ctx.font = "30px Arial";
                 ctx.fillText("Waiting for start of next round",450,350);
             }
-    		  
+    		   drawMuteButton();
             drawExitButton();
         }
     }
@@ -919,6 +940,9 @@ var socket = io.connect();
 var wallet = 0;
 var bet = 0;
 var game = new Object();
+
+
+
 game['wallet'] = 0;
 game['bet'] = 0;
 game['minimumBet'] = 0;
@@ -1168,6 +1192,12 @@ $(function(){   //document is ready
                 }
                 if(game.banker === -1 || game.bet+5 <= game.seatsWallets[game.banker]/(numActivePlayers-1)){
                     game.bet = game.bet+5;
+                    
+                   if(unmute)
+                   {
+		                 var betUp = new Audio("/sound/betUp.wav");						
+		                 betUp.play();
+		             }
                 }
             }
             updateGameInfo();
@@ -1182,7 +1212,12 @@ $(function(){   //document is ready
                 //do nothing
             }
             else if(game.wallet >= game.bet+5 && game.bet > 5){
-                game.bet = game.bet-5;
+               game.bet = game.bet-5;
+               if(unmute)
+                {
+		              var betDown = new Audio("/sound/betDown.wav");						
+		              betDown.play();
+		          }
             }
             updateGameInfo();
         }
@@ -1192,6 +1227,12 @@ $(function(){   //document is ready
         if(x>betLockButtonInfo[0] && x<betLockButtonInfo[0]+betLockInfo[0] && y > betLockButtonInfo[1] && y < betLockButtonInfo[1]+betLockInfo[1]){
             if(game.state == "betting" && game.banker != game.seat){
                 console.log(game.betsLocked);
+                if(unmute)
+                {
+		              var clicked = new Audio("/sound/buttonClick.mp3");						
+		              clicked.play();
+		          }
+		          
                 if(!game.betsLocked){
                     socket.emit("bet locked",game.bet);
                     game.betsLocked = true;
@@ -1207,6 +1248,13 @@ $(function(){   //document is ready
         if(x>selectionLockButtonInfo[0] && x<selectionLockButtonInfo[0]+handLockInfo[0] && y>selectionLockButtonInfo[1] && y < selectionLockButtonInfo[1]+handLockInfo[1] && game.activeSeats[game.seat] === true){
             console.log("Get clicked");
             if(game.state == "pair selection"){
+            
+                if(unmute)
+                {
+		              var clicked = new Audio("/sound/buttonClick.mp3");						
+		              clicked.play();
+		          }
+		          
                 if(!game.selectionLocked){
                     if(game.state == "pair selection" && game.selectedTiles.length == 2 && !game.selectionLocked){
                         game.selectionLocked = true;
@@ -1246,6 +1294,11 @@ $(function(){   //document is ready
 
         // Click on banker selection button
         if(x>bankerSelectionInfo[0] && x<bankerSelectionInfo[0]+bankerButtonInfo[0] && y>bankerSelectionInfo[1] && y<bankerSelectionInfo[1]+bankerButtonInfo[1]){
+     	    if(unmute)
+             {
+	              var clicked = new Audio("/sound/buttonClick.mp3");						
+	              clicked.play();
+	          }
             if(game.bankOnTurn){
                 game.bankOnTurn = false;
                 socket.emit('bank on turn',false);
@@ -1255,10 +1308,31 @@ $(function(){   //document is ready
                 socket.emit('bank on turn',true);
             }
         }
+     
+                                           
+        //mute button 
+        if(x>muteButtonInfo[2] && x<muteButtonInfo[2]+muteButtonInfo[0] && y>muteButtonInfo[3] && y<muteButtonInfo[3]+muteButtonInfo[1])
+        {
+        		if(unmute)
+        		{
+        			unmute = false;
+        		}
+        		else 
+        		{
+        			unmute = true;
+        			var clicked = new Audio("/sound/buttonClick.mp3");						
+	            clicked.play();
+        		}
+        }
 
         //Exit button
         if(x>exitButtonInfo[0] && x<exitButtonInfo[0]+exitButtonInfo[2] && y>exitButtonInfo[1] && y<exitButtonInfo[1]+exitButtonInfo[3]){
             console.log("exit button clicked");
+            if(unmute)
+             {
+	              var clicked = new Audio("/sound/buttonClick.mp3");						
+	              clicked.play();
+	          }
             if(game.exitOnRoundEnd === true){
                 game.exitOnRoundEnd = false;
             }
