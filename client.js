@@ -24,8 +24,16 @@ function getUrlParameters(parameter, staticURL, decode){
    if(!returnBool) return false;  
 }
 
-var email = getUrlParameters("email","",true);
-console.log(email);
+var game = new Object();
+
+var email = "";
+try{
+    email = getUrlParameters("email","",true);
+}
+catch(e){
+    console.log("ERROR OCCURED");
+    game['accountExists'] = false;
+}
 
 
 
@@ -630,8 +638,10 @@ $(function(){
     drawWagers = function(){
         ctx.fillStyle = "#000000";
         ctx.font = '15pt Calibri';
-        ctx.fillText("$ "+game.bet,betLockButtonInfo[0]+20,betLockButtonInfo[1]+35);
-        ctx.fillText("$ "+game.bet,betLockButtonInfo[0]+20,betLockButtonInfo[1]+35);
+        if(game.state == "betting"){
+            ctx.fillText("$ "+game.bet,betLockButtonInfo[0]+20,betLockButtonInfo[1]+35);
+            ctx.fillText("$ "+game.bet,betLockButtonInfo[0]+20,betLockButtonInfo[1]+35);
+        }
         ctx.fillText("$"+game.minimumBet,dealerTileLocations[1][0],dealerTileLocations[1][1]-10);
 
         for(var i = 0; i < 7; i++){
@@ -898,7 +908,6 @@ $(function(){
 				if(game.state == "betting")
 				{
             	drawBetLockButton();
-            	drawWagers();
            	   drawBettingButtons();
             }
             if(game.state == "pair selection")
@@ -941,6 +950,7 @@ $(function(){
             //drawTimer();
             drawPlayerPairHelp();
             drawDealerPairHelp();
+            drawWagers();
             drawWallets();
 
             if(game.activeSeats[game.seat] == false){
@@ -965,10 +975,11 @@ var ranks = [1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9,10,10,11,11,12,12,13,13,14,14,1
 
 var tileDivNames = ["#one","#two","#three","#four"];
 
-var socket = io.connect(window.location.origin,{query:'email='+email});
+if(game.accountExists !== false){
+    var socket = io.connect(window.location.origin,{query:'email='+email});
+}
 var wallet = 0;
 var bet = 0;
-var game = new Object();
 
 
 

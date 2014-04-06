@@ -533,6 +533,7 @@ var app = http.createServer(function(req, res) {
     var request = url.parse(req.url, true);
     // console.log("REQUEST: %j",request);
     var action = request.pathname;
+    console.log("ACTION: "+action);
     if (action == '/style.css') {
         var style = fs.readFileSync('./style.css');
         res.writeHead(200, {'Content-Type' : 'text/css'});
@@ -590,7 +591,15 @@ var app = http.createServer(function(req, res) {
     }
     else {
         // console.log("REQUEST: %j",request);
-        // console.log("USER: "+request.query.email);
+        console.log("USER: "+request.query.email);
+
+        var invalidUser = false;
+        if(typeof request.query.email === 'undefined'){
+            var exitPage = fs.readFileSync('./exitPage.html');
+            res.writeHead(200, {'content-Type' : 'text/html'});
+            res.end(exitPage);
+            invalidUser = true;
+        }
 
         var duplicatePlayer = false;
         //Check if this player is currently in a game
@@ -610,7 +619,7 @@ var app = http.createServer(function(req, res) {
                 }
             }
         }
-        if(!duplicatePlayer){
+        if(!duplicatePlayer && !invalidUser){
             res.writeHead(200, {'content-Type' : 'text/html'});
             res.end(index);
         }
