@@ -25,7 +25,6 @@ function getUrlParameters(parameter, staticURL, decode){
 }
 
 var game = new Object();
-
 var email = "";
 try{
     email = getUrlParameters("email","",true);
@@ -34,6 +33,13 @@ catch(e){
     console.log("ERROR OCCURED");
     game['accountExists'] = false;
 }
+
+
+//Audio files
+var shuffle = new Audio("/sound/Shuffle.mp3");
+var betUp = new Audio("/sound/betUp.wav");
+var betDown = new Audio("/sound/betDown.wav");
+var clicked = new Audio("/sound/buttonClick.mp3");
 
 
 
@@ -473,7 +479,6 @@ $(function(){
     var tileImage = new Image();
     var buttonImage = new Image();
     var tableImage = new Image();
-    var shuffle = new Audio("/sound/Shuffle.mp3");
     var tileReady = false;
     tileImage.src = "/tiles.png";
     buttonImage.src = "/buttons.png";
@@ -901,9 +906,11 @@ $(function(){
             ctx.fillStyle = "#000000";
             ctx.font = '20pt Calibri';
             ctx.fillText("State: "+game.state,400,270);
-				if(game.state == "dealing" && unmute)
-				{					
+				if(game.state == "dealing" && unmute && game.playedShuffleSoundOnce === false)
+				{	
+                    shuffle.load();				
 					shuffle.play();
+                    game.playedShuffleSoundOnce = true;
 				}
 				if(game.state == "betting")
 				{
@@ -1012,6 +1019,7 @@ game['seatsWallets'] = [null,null,null,null,null,null,null];
 game['stateLength'] = [];
 game['exitOnRoundEnd'] = false;
 game['accountExists'] = 0;
+game['playedShuffleSoundOnce'] = false;
 
 var updateGameInfo = function(){
     //Prints seconds remaining, game state, etc
@@ -1078,6 +1086,7 @@ $(function(){   //document is ready
         if(state == "dealing" && !game.betsLocked && game.activeSeats[game.seat] == true){
             socket.emit("bet locked",game.bet);
             game.betsLocked = true;
+            game.playedShuffleSoundOnce = false;
         }
         if(state == "pregame"){
             game.bet = game.minimumBet;
@@ -1239,8 +1248,8 @@ $(function(){   //document is ready
                     
                    if(unmute)
                    {
-		                 var betUp = new Audio("/sound/betUp.wav");						
-		                 betUp.play();
+                        betUp.load();
+                         betUp.play();
 		             }
                 }
             }
@@ -1259,7 +1268,7 @@ $(function(){   //document is ready
                game.bet = game.bet-5;
                if(unmute)
                 {
-		              var betDown = new Audio("/sound/betDown.wav");						
+                    betDown.load();
 		              betDown.play();
 		          }
             }
@@ -1273,7 +1282,7 @@ $(function(){   //document is ready
                 console.log(game.betsLocked);
                 if(unmute)
                 {
-		              var clicked = new Audio("/sound/buttonClick.mp3");						
+                        clicked.load();
 		              clicked.play();
 		          }
 		          
@@ -1294,15 +1303,14 @@ $(function(){   //document is ready
             if(game.state == "pair selection"){
             
                 if(unmute)
-                {
-		              var clicked = new Audio("/sound/buttonClick.mp3");						
+                {	
+                    clicked.load();					
 		              clicked.play();
 		          }
 		          
                 if(!game.selectionLocked){
                     if(game.state == "pair selection" && game.selectedTiles.length == 2 && !game.selectionLocked){
                         game.selectionLocked = true;
-                        console.log("SELECTION LOCKED");
                         socket.emit('pair selection locked',game.selectedTiles);
                     }
                 }
@@ -1341,7 +1349,7 @@ $(function(){   //document is ready
         if(x>bankerSelectionInfo[0] && x<bankerSelectionInfo[0]+bankerButtonInfo[0] && y>bankerSelectionInfo[1] && y<bankerSelectionInfo[1]+bankerButtonInfo[1]){
      	    if(unmute)
              {
-	              var clicked = new Audio("/sound/buttonClick.mp3");						
+                    clicked.load();
 	              clicked.play();
 	          }
             if(game.bankOnTurn){
@@ -1365,8 +1373,8 @@ $(function(){   //document is ready
         		else 
         		{
         			unmute = true;
-        			var clicked = new Audio("/sound/buttonClick.mp3");						
-	            clicked.play();
+                    clicked.load();
+	               clicked.play();
         		}
         }
 
@@ -1375,7 +1383,7 @@ $(function(){   //document is ready
             console.log("exit button clicked");
             if(unmute)
              {
-	              var clicked = new Audio("/sound/buttonClick.mp3");						
+                clicked.load();
 	              clicked.play();
 	          }
             if(game.exitOnRoundEnd === true){
