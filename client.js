@@ -431,27 +431,6 @@ $(function(){
     c.width = 1100;
     c.height = 600;
     var ctx = c.getContext('2d');
-    // ctx.fillStyle = "#003300";
-    // ctx.fillRect(0,0,150,75);
-
-    // var path;
-    // function onMouseDown(event){
-    //     path = new Path();
-    //     path.strokeColor = "black";
-    //     path.add(event.point);
-    // }
-
-    // var tool = new Tool();
-    // tool.onMouseDown = onMouseDown;
-    // tool.onMouseDrag = function(event){
-    //     path.add(event.point);
-    // }
-
-    // view.onFrame = function(event){
-    //     // console.log("test");
-    //     ctx.fillStyle = "#003300";
-    //     ctx.fill();
-    // };
 
     var tileImage = new Image();
     var buttonImage = new Image();
@@ -854,68 +833,75 @@ $(function(){
 
     render = function(){
         
-        //Fill background
-        //ctx.fillStyle = "#003300";
-        ctx.fillStyle = "#F0FFFF";
-        ctx.fillRect(0,0,c.width,c.height);
-        ctx.drawImage(tableImage,0,0,c.width,c.height); 
-
-     
-			drawTimerBar();
-        //Draw game state
-        ctx.fillStyle = "#000000";
-        ctx.font = '20pt Calibri';
-        ctx.fillText("State: "+game.state,400,270);
-
-        drawBetLockButton();
-
-        ctx.fillStyle = "#000000";
-        ctx.font = '15pt Calibri';
-        ctx.fillText("Wallet: "+game.wallet,0,c.height);
-
-       
-
-        drawBankerSymbol();
-
-        // if(game.banker == -1){
-        //     drawBankerSymbol(500,30);
-        // }
-        // else{
-        //     drawBankerSymbol(500,550);
-        // }
-
-        if(tileReady){
-            drawPlayerTiles();
-            drawDealerTiles();
-
-        }
-        
-        highlightSelection();
-        highlightDealerSelection();
-        // drawTileBack(50,50);
-        drawWagers();
-        drawBettingButtons();
-        drawSelectionLockButtons();
-
-        if(!game.playerActive){
+        if(game.accountExists === -1){
             ctx.fillStyle = "#000000";
-            ctx.font = "30px Arial";
-            ctx.fillText("INSUFFICIENT FUNDS",450,350);
+            ctx.font = '20pt Calibri';
+            ctx.fillText("Invalid account",400,270);
         }
+        else{
+            //Fill background
+            //ctx.fillStyle = "#003300";
+            ctx.fillStyle = "#F0FFFF";
+            ctx.fillRect(0,0,c.width,c.height);
+            ctx.drawImage(tableImage,0,0,c.width,c.height); 
 
-        //drawTimer();
-        drawPlayerPairHelp();
-        drawDealerPairHelp();
-        drawWallets();
-
-        if(game.activeSeats[game.seat] == false){
-            //Let the player know he is inactive
+         
+    			drawTimerBar();
+            //Draw game state
             ctx.fillStyle = "#000000";
-            ctx.font = "30px Arial";
-            ctx.fillText("Waiting for start of next round",450,350);
+            ctx.font = '20pt Calibri';
+            ctx.fillText("State: "+game.state,400,270);
+
+            drawBetLockButton();
+
+            ctx.fillStyle = "#000000";
+            ctx.font = '15pt Calibri';
+            ctx.fillText("Wallet: "+game.wallet,0,c.height);
+
+           
+
+            drawBankerSymbol();
+
+            // if(game.banker == -1){
+            //     drawBankerSymbol(500,30);
+            // }
+            // else{
+            //     drawBankerSymbol(500,550);
+            // }
+
+            if(tileReady){
+                drawPlayerTiles();
+                drawDealerTiles();
+
+            }
+            
+            highlightSelection();
+            highlightDealerSelection();
+            // drawTileBack(50,50);
+            drawWagers();
+            drawBettingButtons();
+            drawSelectionLockButtons();
+
+            if(!game.playerActive){
+                ctx.fillStyle = "#000000";
+                ctx.font = "30px Arial";
+                ctx.fillText("INSUFFICIENT FUNDS",450,350);
+            }
+
+            //drawTimer();
+            drawPlayerPairHelp();
+            drawDealerPairHelp();
+            drawWallets();
+
+            if(game.activeSeats[game.seat] == false){
+                //Let the player know he is inactive
+                ctx.fillStyle = "#000000";
+                ctx.font = "30px Arial";
+                ctx.fillText("Waiting for start of next round",450,350);
+            }
+    		  
+            drawExitButton();
         }
-		  
-        drawExitButton();
     }
 
     setInterval(function(){
@@ -961,6 +947,7 @@ game['seatsBets'] = [null,null,null,null,null,null,null];  //the value of the be
 game['seatsWallets'] = [null,null,null,null,null,null,null];
 game['stateLength'] = [];
 game['exitOnRoundEnd'] = false;
+game['accountExists'] = 0;
 
 var updateGameInfo = function(){
     //Prints seconds remaining, game state, etc
@@ -1010,6 +997,7 @@ $(function(){   //document is ready
         game.seat = seat;
         game.activeSeats = active;
         game.seatsWallets = wallets;
+        game.accountExists = 1;
         $("#messages").prepend("<li>Got a connection from the server</li>");
         updateGameInfo();
     });
@@ -1146,6 +1134,10 @@ $(function(){   //document is ready
     //Called when the server wants to notify the client of a connection or disconnection
     socket.on('active players update',function(seats){
         game.activeSeats = seats;
+    });
+    //Called when the server cant find this players account
+    socket.on('no account',function(){
+        game.accountExists = -1;
     });
 
     setInterval(function(){

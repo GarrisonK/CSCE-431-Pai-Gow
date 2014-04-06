@@ -396,11 +396,14 @@ playerExists = function(player,email){
 
           //the whole response has been recieved, so we just print it out here
           response.on('end', function () {
-            if(str === "true"){
-                assignTable();
+            // if(str === "true"){
+            //TODO Uncomment line above for deployment
+            if(str === 'true' || str === 'false'){
+                checkWallet();
             }
             else{
                 //TODO kick player
+                noAccountHandler();
             }
           });
     }
@@ -408,19 +411,16 @@ playerExists = function(player,email){
     http.request(options, callback).end();
 }
 
-getPlayerName = function(id){
-    //TODO complete function stub
-
+getPlayerInfo = function(email){
     var options = {
       host: "heroku-team-bankin.herokuapp.com",
-      path: '/services/account/exists/'+id
+      path: '/services/account/exists/'+email
     };
 
     console.log(options);
 
     var callback = function(response){
         var str = '';
-
         response.on('data', function (chunk) {
         str += chunk;
       });
@@ -428,18 +428,45 @@ getPlayerName = function(id){
       //the whole response has been recieved, so we just print it out here
       response.on('end', function () {
         console.log("RESULT: "+str);
+        //TODO complete function stub
       });
     }
 
     http.request(options, callback).end();
 
-    console.log("here");
     return "Bob";
 };
 
-getPlayerWallet = function(id){
+getPlayerWallet = function(player,email){
     //TODO complete function stub
-    return 100;
+
+    var options = {
+      host: "heroku-team-bankin.herokuapp.com",
+      path: '/services/account/get/'+email
+    };
+
+    var callback = function(response){
+        var str = '';
+        response.on('data', function (chunk) {
+        str += chunk;
+      });
+
+      //the whole response has been recieved
+      response.on('end', function () {
+        console.log("RESULT: "+str);
+        //TODO complete function stub
+        var money = 100; //replace with the actual amount returned from the bank
+        player.wallet = money;
+        if(money >= minimumBet){
+            assignTable();
+        }
+        else{
+            alertInsufficientFunds();
+        }
+      });
+    }
+
+    http.request(options, callback).end();
 };
 
 
@@ -553,19 +580,26 @@ io.sockets.on('connection', function(socket) {
 
     // getPlayerName('coolguy9');
 
+    //TODO replace coolguy9 with data supplied by the lobby team
+    // var id = 'coolguy9';
     var id = socket.id;
-    // var player = new newPlayer(name, id, socket, minimumBet);
     var player = new newPlayer("name", id, socket, minimumBet);
 
     var name = playerExists(player,'coolguy9');
+    var tableId = -1;
+    var seat = -1;
     var tableId;
-    var seat;
     
+    checkWallet = function(){
+        getPlayerWallet(player,id);
+    };
+
+    alertInsufficientFunds = function(){
+        socket.emit('insufficient funds');
+        socket.disconnect();
+    };
+
     assignTable = function(){
-        console.log("Name found: "+player.playerExists);
-
-
-        player.wallet = getPlayerWallet(id);
         var foundTable = false;
         tableId = -1;
 
@@ -651,45 +685,52 @@ io.sockets.on('connection', function(socket) {
         }
     };
 
+    noAccountHandler = function(){
+        socket.emit('no account');
+        socket.disconnect();
+    };
+
+
+
     socket.on('disconnect', function() {
         console.log('disconnect ' + player.name);
 
         //find the table that player is at, remove him from the seat, and remove
         //that table
-        for (j = 0; j < tables[tableId].seats.length; j++) {
-            if(tables[tableId].seats[j] !== null){
-                if (tables[tableId].seats[j].id == player.id) {
-                    tables[tableId].seats[j] = null;
-                    tables[tableId].activeSeats[j] = false;
+        if(tableId !== -1){
+            for (j = 0; j < tables[tableId].seats.length; j++) {
+                if(tables[tableId].seats[j] !== null){
+                    if (tables[tableId].seats[j].id == player.id) {
+                        tables[tableId].seats[j] = null;
+                        tables[tableId].activeSeats[j] = false;
 
-                    //get the number of players at this table
-                    var playerCount = 0;
-                    for(var k = 0; k < tables[tableId].seats.length; k++){
-                        if(tables[tableId].seats[k] !== null){
-                            playerCount += 1;
-                        }
-                    }
-                    if(playerCount === 0){
-                        //this table has no more players, remove it
-                        // tables.splice(tableId, 1);
-                        // TODO fix this
-                        tables[tableId] = null;
-                        console.log("removed table "+tableId);
-                    }
-                    else{
-                        //Notify all players at this table of the disconnection
+                        //get the number of players at this table
+                        var playerCount = 0;
                         for(var k = 0; k < tables[tableId].seats.length; k++){
                             if(tables[tableId].seats[k] !== null){
-                                tables[tableId].seats[k].socket.emit('active players update',tables[tableId].activeSeats);
+                                playerCount += 1;
                             }
-                        }    
+                        }
+                        if(playerCount === 0){
+                            //this table has no more players, remove it
+                            // tables.splice(tableId, 1);
+                            // TODO fix this
+                            tables[tableId] = null;
+                            console.log("removed table "+tableId);
+                        }
+                        else{
+                            //Notify all players at this table of the disconnection
+                            for(var k = 0; k < tables[tableId].seats.length; k++){
+                                if(tables[tableId].seats[k] !== null){
+                                    tables[tableId].seats[k].socket.emit('active players update',tables[tableId].activeSeats);
+                                }
+                            }    
+                        }
+                        break;
                     }
-                    break;
                 }
             }
         }
-
-
     });
 
     socket.on('bet locked', function(bet) {
@@ -1200,18 +1241,25 @@ setInterval(function() {
 
                     //Kick players without sufficient money
                     // also, check wallets
+                    var socketsToKick = [];
                     for (j = 0; j < tables[i].seats.length; j++) {
                         if (tables[i].seats[j] !== null) {
                             if (tables[i].seats[j].wallet < tables[i].minimumBet) {
                                 //This player doesn't have enough money to play
                                 tables[i].seats[j].socket.emit(
                                     'insufficient funds');
-                                tables[i].seats[j] = null;
+                                // tables[i].seats[j] = null;
+                                // tables[i].seats[j].socket.disconnect();
+                                socketsToKick.push(tables[i].seats[j].socket);
                             }
                             else{
                                 seatsWallets[j] = tables[i].seats[j].wallet;
                             }
                         }
+                    }
+
+                    for(j = 0; j < socketsToKick.length; j++){
+                        socketsToKick[j].disconnect();
                     }
                 }
             }
