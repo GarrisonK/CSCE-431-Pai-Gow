@@ -1193,6 +1193,10 @@ $(function(){   //document is ready
         game.accountExists = -1;
     });
 
+    socket.on('duplicate account',function(){
+        game.accountExists = -1;
+    });
+
     setInterval(function(){
         updateGameInfo();
     },50);

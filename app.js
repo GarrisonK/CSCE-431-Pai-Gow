@@ -591,8 +591,29 @@ var app = http.createServer(function(req, res) {
     else {
         // console.log("REQUEST: %j",request);
         // console.log("USER: "+request.query.email);
-        res.writeHead(200, {'content-Type' : 'text/html'});
-        res.end(index);
+
+        var duplicatePlayer = false;
+        //Check if this player is currently in a game
+        for(var i = 0; i < tables.length; i++){
+            if(tables[i] !== null){
+                console.log("i: "+i);
+                for(var j = 0; j < tables[i].seats.length; j++){
+                    if(tables[i].seats[j] !== null){
+                        if(tables[i].seats[j].id == request.query.email){
+                            var exitPage = fs.readFileSync('./exitPage.html');
+                            res.writeHead(200, {'content-Type' : 'text/html'});
+                            res.end(exitPage);
+                            duplicatePlayer = true;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        if(!duplicatePlayer){
+            res.writeHead(200, {'content-Type' : 'text/html'});
+            res.end(index);
+        }
     }
 }), io = sio.listen(app);
 
@@ -611,11 +632,10 @@ io.sockets.on('connection', function(socket) {
     // var id = socket.id;
     var id = socket.manager.handshaken[socket.id].query.email;
     var player = new newPlayer("name", id, socket, minimumBet);
-
-    var name = playerExists(player,'coolguy9');
     var tableId = -1;
     var seat = -1;
-    var tableId;
+
+    var name = playerExists(player,'coolguy9');
     
     checkWallet = function(){
         getPlayerWallet(player,id);
@@ -717,13 +737,19 @@ io.sockets.on('connection', function(socket) {
         socket.disconnect();
     };
 
+    duplicatePlayerHandler = function(){
+        socket.emit('duplicate account');
+        socket.disconnect();
+    }
+
 
 
     socket.on('disconnect', function() {
-        console.log('disconnect ' + player.name);
+        console.log('disconnect ' + player.id);
 
         //find the table that player is at, remove him from the seat, and remove
         //that table
+        console.log("tableid: "+tableId);
         if(tableId !== -1){
             for (j = 0; j < tables[tableId].seats.length; j++) {
                 if(tables[tableId].seats[j] !== null){
