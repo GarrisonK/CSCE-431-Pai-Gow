@@ -1,4 +1,33 @@
 
+function getUrlParameters(parameter, staticURL, decode){
+   /*
+    Function: getUrlParameters
+    Description: Get the value of URL parameters either from 
+                 current URL or static URL
+    Author: Tirumal
+    URL: www.code-tricks.com
+   */
+   var currLocation = (staticURL.length)? staticURL : window.location.search,
+       parArr = currLocation.split("?")[1].split("&"),
+       returnBool = true;
+   
+   for(var i = 0; i < parArr.length; i++){
+        parr = parArr[i].split("=");
+        if(parr[0] == parameter){
+            return (decode) ? decodeURIComponent(parr[1]) : parr[1];
+            returnBool = true;
+        }else{
+            returnBool = false;            
+        }
+   }
+   
+   if(!returnBool) return false;  
+}
+
+var email = getUrlParameters("email","",true);
+console.log(email);
+
+
 
 //Pai Gow tile infomation code
 var dots = [3,6,12,12,2,2,8,8,4,4,10,10,6,6,4,4,11,11,10,10,7,7,6,6,9,9,8,8,7,7,5,5];
@@ -936,7 +965,7 @@ var ranks = [1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9,10,10,11,11,12,12,13,13,14,14,1
 
 var tileDivNames = ["#one","#two","#three","#four"];
 
-var socket = io.connect();
+var socket = io.connect(window.location.origin,{query:'email='+email});
 var wallet = 0;
 var bet = 0;
 var game = new Object();
@@ -1246,7 +1275,7 @@ $(function(){   //document is ready
 
         // Pair lock button
         if(x>selectionLockButtonInfo[0] && x<selectionLockButtonInfo[0]+handLockInfo[0] && y>selectionLockButtonInfo[1] && y < selectionLockButtonInfo[1]+handLockInfo[1] && game.activeSeats[game.seat] === true){
-            console.log("Get clicked");
+            console.log("clicked on pair lock button");
             if(game.state == "pair selection"){
             
                 if(unmute)
@@ -1258,6 +1287,7 @@ $(function(){   //document is ready
                 if(!game.selectionLocked){
                     if(game.state == "pair selection" && game.selectedTiles.length == 2 && !game.selectionLocked){
                         game.selectionLocked = true;
+                        console.log("SELECTION LOCKED");
                         socket.emit('pair selection locked',game.selectedTiles);
                     }
                 }

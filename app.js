@@ -531,6 +531,7 @@ var addPlayer = function(table, player) {
 
 var app = http.createServer(function(req, res) {
     var request = url.parse(req.url, true);
+    // console.log("REQUEST: %j",request);
     var action = request.pathname;
     if (action == '/style.css') {
         var style = fs.readFileSync('./style.css');
@@ -588,6 +589,8 @@ var app = http.createServer(function(req, res) {
         res.end(exitPage);
     }
     else {
+        // console.log("REQUEST: %j",request);
+        // console.log("USER: "+request.query.email);
         res.writeHead(200, {'content-Type' : 'text/html'});
         res.end(index);
     }
@@ -598,11 +601,15 @@ io.set('log level',1); //dont log so much debugging stuff
 
 io.sockets.on('connection', function(socket) {
 
+    console.log("QUERY: "+socket.manager.handshaken[socket.id].query.email);
+
+    // console.log(request.query.email);
     // getPlayerName('coolguy9');
 
     //TODO replace coolguy9 with data supplied by the lobby team
     // var id = 'coolguy9';
-    var id = socket.id;
+    // var id = socket.id;
+    var id = socket.manager.handshaken[socket.id].query.email;
     var player = new newPlayer("name", id, socket, minimumBet);
 
     var name = playerExists(player,'coolguy9');
@@ -820,7 +827,7 @@ io.sockets.on('connection', function(socket) {
                 if(tables[i] !== null){
                     for (j = 0; j < tables[i].seats.length; j++) {
                         if (tables[i].seats[j] !== null) {
-                            if (tables[i].seats[j].id == socket.id) {
+                            if (tables[i].seats[j].id == player.id) {
                                 //found player
                                 if (tables[i].seats[j].tileSelection.length == 2) {
                                     //player has a previous valid selection, reuse
@@ -846,7 +853,7 @@ io.sockets.on('connection', function(socket) {
                 if(tables[i] !== null){
                     for (j = 0; j < 7; j++) {
                         if(tables[i].seats[j] !== null){
-                            if (tables[i].seats[j].id == socket.id) {
+                            if (tables[i].seats[j].id == player.id) {
                                 for (var k = 0; k < pair.length; k++) {
                                     //check that the player was dealt these tiles
                                     if (tables[i].seats[j].tiles.indexOf(pair[k]) ==
@@ -880,7 +887,7 @@ io.sockets.on('connection', function(socket) {
             if(tables[i] !== null){
                 for (var j = 0; j < 7; j++) {
                     if (tables[i].seats[j] !== null) {
-                        if (tables[i].seats[j].id == socket.id) {
+                        if (tables[i].seats[j].id == player.id) {
                             tables[i].seats[j].tileSelection = pair;
                             tables[i].seats[j].selectionLocked = true;
                             socket.emit('confirm selection locked', pair);
@@ -910,7 +917,7 @@ io.sockets.on('connection', function(socket) {
             if(tables[i] !== null){
                 for (var j = 0; j < 7; j++) {
                     if (tables[i].seats[j] !== null) {
-                        if (tables[i].seats[j].id == socket.id) {
+                        if (tables[i].seats[j].id == player.id) {
                             tables[i].seats[j].selectionLocked = false;
                             socket.emit('confirm selection unlocked');
                         }
@@ -925,7 +932,7 @@ io.sockets.on('connection', function(socket) {
             if(tables[i] !== null){
                 for (var j = 0; j < 7; j++) {
                     if (tables[i].seats[j] !== null) {
-                        if (tables[i].seats[j].id == socket.id) {
+                        if (tables[i].seats[j].id == player.id) {
                             tables[i].seats[j].bankOnTurn = selection;
                             break;
                         }
