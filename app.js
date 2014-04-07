@@ -457,6 +457,7 @@ getPlayerWallet = function(player,email){
         //TODO complete function stub
         var money = 100; //replace with the actual amount returned from the bank
         player.wallet = money;
+        player.walletUpdated = true;
         if(money >= minimumBet){
             assignTable();
         }
@@ -468,6 +469,39 @@ getPlayerWallet = function(player,email){
 
     http.request(options, callback).end();
 };
+
+updatePlayerWallet = function(player,email){
+        //TODO complete function stub
+
+    var options = {
+      host: "heroku-team-bankin.herokuapp.com",
+      path: '/services/account/get/'+email
+    };
+
+    var callback = function(response){
+        var str = '';
+        response.on('data', function (chunk) {
+        str += chunk;
+      });
+
+      //the whole response has been recieved
+      response.on('end', function () {
+        console.log("RESULT: "+str);
+        //TODO complete function stub
+        var money = 100; //replace with the actual amount returned from the bank
+        player.wallet = money;
+        player.walletUpdated = true;
+        if(money >= minimumBet){
+            //do nothing
+        }
+        else{
+            alertInsufficientFunds();
+        }
+      });
+    }
+
+    http.request(options, callback).end();
+}
 
 
 var tables = [];
@@ -495,6 +529,7 @@ var newPlayer = function(name, id, socket, minimumBet) {
     this.bankOnTurn = true;
     this.nameFound = false;
     this.playerFound = false;
+    this.walletUpdated = false; //A flag which is set to true when this players wallet has been updated
 };
 
 var newTable = function() {
@@ -605,7 +640,7 @@ var app = http.createServer(function(req, res) {
         //Check if this player is currently in a game
         for(var i = 0; i < tables.length; i++){
             if(tables[i] !== null){
-                console.log("i: "+i);
+                // console.log("i: "+i);
                 for(var j = 0; j < tables[i].seats.length; j++){
                     if(tables[i].seats[j] !== null){
                         if(tables[i].seats[j].id == request.query.email){
@@ -758,7 +793,7 @@ io.sockets.on('connection', function(socket) {
 
         //find the table that player is at, remove him from the seat, and remove
         //that table
-        console.log("tableid: "+tableId);
+        // console.log("tableid: "+tableId);
         if(tableId !== -1){
             for (j = 0; j < tables[tableId].seats.length; j++) {
                 if(tables[tableId].seats[j] !== null){
@@ -986,7 +1021,29 @@ setInterval(function() {
         if(tables[i] !== null){
             var j;
             var k;
-            if (time - tables[i].timeOfLastStateChange > stateLength[gameStates.indexOf(tables[i].state)] || tables[i].advanceState === true) {
+            // Make sure all players have enough money before advancing states
+            var allWalletsUpdated = true;
+            var socketsToKick = [];
+            for(j = 0; j < tables[i].seats.length; j++){
+                if(tables[i].seats[j]!==null){
+                    if(tables[i].seats[j].walletUpdated === false){
+                        allWalletsUpdated = false;
+                    }
+                    else{
+                        if(tables[i].seats[j].wallet < tables[i].minimumBet){
+                            socketsToKick.push(tables[i].seats[j]);
+                        }
+                    }
+                }
+            }
+
+            for(j = 0; j < socketsToKick.length; j++){
+                socketsToKick[j].socket.disconnect();
+            }
+
+            // console.log("All wallets updated: "+allWalletsUpdated);
+            // console.log("Active seats: "+tables[i].activeSeats);
+            if ((time - tables[i].timeOfLastStateChange > stateLength[gameStates.indexOf(tables[i].state)] || tables[i].advanceState === true) && allWalletsUpdated) {
                 //this table needs to update
                 tables[i].advanceState = false;
                 console.log("need to update");
@@ -1010,6 +1067,8 @@ setInterval(function() {
                             tables[i].activeSeats[j] = true;
                         }
                     }
+
+                    // console.log("PREGAME SEATS: "+tables[i].seats);
      
                     // find the next willing banker
                     // TODO consider possibility of a player connecting during pregame
@@ -1048,7 +1107,7 @@ setInterval(function() {
                          }
                     }
 
-                    console.log("active seats: "+tables[i].activeSeats);
+                    // console.log("active seats: "+tables[i].activeSeats);
 
 
 
@@ -1101,7 +1160,7 @@ setInterval(function() {
                         }
                     }
 
-                    console.log("\n\n\nseats bets "+seatsBets);
+                    // console.log("\n\n\nseats bets "+seatsBets);
                     for(j = 0; j < tables[i].seats.length; j++){
                         if(tables[i].seats[j] !== null){
                             tables[i].seats[j].socket.emit('seats bets',seatsBets);
@@ -1164,6 +1223,8 @@ setInterval(function() {
                     //now reveal winners and payout
                     if (tables[i].banker == -1) {
                         //dealer is the banker
+
+                        // TODO send wallet updates to server
 
                         for (j = 0; j < tables[i].seats.length; j++) {
                             if (tables[i].seats[j] !== null && tables[i].activeSeats[j] === true) {
@@ -1303,26 +1364,33 @@ setInterval(function() {
 
                     //Kick players without sufficient money
                     // also, check wallets
-                    var socketsToKick = [];
-                    for (j = 0; j < tables[i].seats.length; j++) {
-                        if (tables[i].seats[j] !== null) {
-                            if (tables[i].seats[j].wallet < tables[i].minimumBet) {
-                                //This player doesn't have enough money to play
-                                tables[i].seats[j].socket.emit(
-                                    'insufficient funds');
-                                // tables[i].seats[j] = null;
-                                // tables[i].seats[j].socket.disconnect();
-                                socketsToKick.push(tables[i].seats[j].socket);
-                            }
-                            else{
-                                seatsWallets[j] = tables[i].seats[j].wallet;
-                            }
+                    for(j = 0; j < tables[i].seats.length; j++){
+                        if(tables[i].seats[j] !== null){
+                            tables[i].seats[j].walletUpdated = false;
+                            updatePlayerWallet(tables[i].seats[j],tables[i].seats[j].id);
                         }
                     }
 
-                    for(j = 0; j < socketsToKick.length; j++){
-                        socketsToKick[j].disconnect();
-                    }
+                    // var socketsToKick = [];
+                    // for (j = 0; j < tables[i].seats.length; j++) {
+                    //     if (tables[i].seats[j] !== null) {
+                    //         if (tables[i].seats[j].wallet < tables[i].minimumBet) {
+                    //             //This player doesn't have enough money to play
+                    //             tables[i].seats[j].socket.emit(
+                    //                 'insufficient funds');
+                    //             // tables[i].seats[j] = null;
+                    //             // tables[i].seats[j].socket.disconnect();
+                    //             socketsToKick.push(tables[i].seats[j].socket);
+                    //         }
+                    //         else{
+                    //             seatsWallets[j] = tables[i].seats[j].wallet;
+                    //         }
+                    //     }
+                    // }
+
+                    // for(j = 0; j < socketsToKick.length; j++){
+                    //     socketsToKick[j].disconnect();
+                    // }
                 }
             }
         }
