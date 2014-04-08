@@ -594,6 +594,11 @@ var app = http.createServer(function(req, res) {
         res.writeHead(200, {'Content-Type' : 'image/png'});
         res.end(buttons, 'binary');
     }
+    else if (action == '/howler.min.js'){
+        var howler = fs.readFileSync('./howler.min.js');
+        res.writeHead(200, {'Content-Type' : 'text/javascript'});
+        res.end(howler, 'binary');
+    }
     else if (action == '/table.png') {
         var table = fs.readFileSync('./table.png');
         res.writeHead(200, {'Content-Type' : 'image/png'});

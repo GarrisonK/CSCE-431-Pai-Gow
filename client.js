@@ -37,7 +37,10 @@ catch(e){
 
 //Audio files
 var shuffle = new Audio("/sound/Shuffle.mp3");
-var betUp = new Audio("/sound/betUp.wav");
+// var betUp = new Audio("/sound/betUp.wav");
+var betUp = new Howl({
+    urls:['/sound/betUp.wav']
+});
 var betDown = new Audio("/sound/betDown.wav");
 var clicked = new Audio("/sound/buttonClick.mp3");
 
@@ -1248,7 +1251,7 @@ $(function(){   //document is ready
                     
                    if(unmute)
                    {
-                        betUp.load();
+                        // betUp.load();
                          betUp.play();
 		             }
                 }
