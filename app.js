@@ -398,7 +398,7 @@ playerExists = function(player,email){
           response.on('end', function () {
             // if(str === "true"){
             //TODO Uncomment line above for deployment
-            if(str === 'true' || str === 'false'){
+            if(str === 'true' || str === 'false' || true){   //||true handles for now the changing bank api, remove for deployment
                 checkWallet();
             }
             else{
