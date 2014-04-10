@@ -506,6 +506,12 @@ updatePlayerWallet = function(player,email){
     http.request(options, callback).end();
 }
 
+depositMoney = function(player,amount){
+    //amount is positive for deposits, negative for withdrawals
+    //TODO complete function stub
+    console.log(player.id+" for "+amount);
+}
+
 
 var tables = [];
 var gameStates = ['pregame', 'betting', 'dealing', 'pair selection',
@@ -706,7 +712,6 @@ io.sockets.on('connection', function(socket) {
         var j;
 
         //look for a seat at an existing table
-        // TODO, update code for multiple tables. Consider using something other than an array
         for(i = 0; i < tables.length; i++){
             if(tables[i] === null){
                 console.log("adding player to previously null table: "+i);
@@ -828,7 +833,6 @@ io.sockets.on('connection', function(socket) {
                         if(playerCount === 0){
                             //this table has no more players, remove it
                             // tables.splice(tableId, 1);
-                            // TODO fix this
                             tables[tableId] = null;
                             console.log("removed table "+tableId);
                         }
@@ -862,7 +866,6 @@ io.sockets.on('connection', function(socket) {
             }
 
             if(tables[tableId].banker === -1 || bet <= tables[tableId].seats[tables[tableId].banker].wallet / (numActivePlayers-1)){
-                //TODO verify this
                 player.bet = bet;
                 socket.emit('bet lock confirm', bet);
             }
@@ -969,15 +972,30 @@ io.sockets.on('connection', function(socket) {
     });
 
     socket.on('pair selection locked', function(pair) {
-        //TODO check if player was dealt these tiles
         for (var i = 0; i < tables.length; i++) {
             if(tables[i] !== null){
                 for (var j = 0; j < 7; j++) {
                     if (tables[i].seats[j] !== null) {
                         if (tables[i].seats[j].id == player.id) {
-                            tables[i].seats[j].tileSelection = pair;
-                            tables[i].seats[j].selectionLocked = true;
-                            socket.emit('confirm selection locked', pair);
+                            //found the player, now check the tiles
+                            var allValidTiles = true;
+                            for(var k = 0; k < pair.length; k++){
+                                var foundThisTile = false;
+                                for(var p = 0; p < tables[i].seats[j].tiles.length; p++){
+                                    if(pair[k] == tables[i].seats[j].tiles[p]){
+                                        foundThisTile = true;
+                                    }
+                                }
+                                if(!foundThisTile){
+                                    allValidTiles = false;
+                                    break;
+                                }
+                            }
+                            if(allValidTiles){
+                                tables[i].seats[j].tileSelection = pair;
+                                tables[i].seats[j].selectionLocked = true;
+                                socket.emit('confirm selection locked', pair);
+                            }
                         }
                     }
                 }
@@ -1259,6 +1277,8 @@ setInterval(function() {
                                     tables[i].seats[j].socket.emit(
                                         'wallet update',
                                         tables[i].seats[j].wallet);
+                                    //alert bank
+                                    depositMoney(tables[i].seats[j],-1*tables[i].seats[j].bet);
                                 }
                                 else if (roundWinner == 2) {
                                     //opponent win
@@ -1268,6 +1288,7 @@ setInterval(function() {
                                     tables[i].seats[j].bet;
                                     tables[i].seats[j].socket.emit(
                                         'wallet update', tables[i].seats[j].wallet);
+                                    depositMoney(tables[i].seats[j],tables[i].seats[j].bet);
                                 }
                                 else {
                                     //push
@@ -1297,6 +1318,7 @@ setInterval(function() {
                             tables[i].seats[tables[i].banker].socket.emit(
                                 'wallet update',
                                 tables[i].seats[tables[i].banker].wallet);
+                            depositMoney(tables[i].seats[tables[i].banker],tables[i].minimumBet);
                         }
                         else if (proundWinner == 2) {
                             //dealer wins
@@ -1307,6 +1329,7 @@ setInterval(function() {
                             tables[i].seats[tables[i].banker].socket.emit(
                                 'wallet update',
                                 tables[i].seats[tables[i].banker].wallet);
+                            depositMoney(tables[i].seats[tables[i].banker],-1*tables[i].minimumBet);
                         }
                         else {
                             //push
@@ -1330,6 +1353,8 @@ setInterval(function() {
                                     tables[i].seats[j].wallet -= tables[i].seats[j].bet;
                                     tables[i].seats[tables[i].banker].socket.emit('wallet update',tables[i].seats[tables[i].banker].wallet);
                                     tables[i].seats[j].socket.emit('wallet update',tables[i].seats[j].wallet);
+                                    depositMoney(tables[i].seats[tables[i].banker],tables[i].seats[j].bet);
+                                    depositMoney(tables[i].seats[j],-1*tables[i].seats[j].bet);
                                 }
                                 else if(pvproundWinner == 2){
                                     //opponent win
@@ -1339,6 +1364,8 @@ setInterval(function() {
                                     tables[i].seats[j].wallet += tables[i].seats[j].bet;
                                     tables[i].seats[tables[i].banker].socket.emit('wallet update',tables[i].seats[tables[i].banker].wallet);
                                     tables[i].seats[j].socket.emit('wallet update',tables[i].seats[j].wallet);
+                                    depositMoney(tables[i].seats[tables[i].banker],-1*tables[i].seats[j].bet);
+                                    depositMoney(tables[i].seats[j],tables[i].seats[j].bet);
                                 }
                                 else{
                                     tables[i].seats[tables[i].banker].socket.emit('match result','push');
@@ -1346,7 +1373,6 @@ setInterval(function() {
                                 }
                             }
                         }
-
                     }
 
                     var seatsWallets = [null,null,null,null,null,null,null];
@@ -1362,7 +1388,6 @@ setInterval(function() {
                             tables[i].seats[j].socket.emit('seats wallets',seatsWallets);
                         }
                     }
-
                 }
                 else if (tables[i].state == 'endgame') {
                     //reset all game information, shuffle deck
@@ -1379,8 +1404,7 @@ setInterval(function() {
                     tables[i].dealerSelection = [];
                     var seatsWallets = [null,null,null,null,null,null,null];
 
-                    //Kick players without sufficient money
-                    // also, check wallets
+                    //update wallets
                     for(j = 0; j < tables[i].seats.length; j++){
                         if(tables[i].seats[j] !== null){
                             tables[i].seats[j].walletUpdated = false;
