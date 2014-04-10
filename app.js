@@ -387,6 +387,8 @@ playerExists = function(player,email){
       path: '/services/account/exists/'+email
     };
 
+    console.log(options);
+
     var callback = function(response){
         var str = '';
 
@@ -398,7 +400,8 @@ playerExists = function(player,email){
           response.on('end', function () {
             // if(str === "true"){
             //TODO Uncomment line above for deployment
-            if(str === 'true' || str === 'false' || true){   //||true handles for now the changing bank api, remove for deployment
+            console.log("ACCOUNT CHECK RESULT: "+str);
+            if(str === 'true' || str === 'false'){   //||true handles for now the changing bank api, remove for deployment
                 checkWallet();
             }
             else{
@@ -684,7 +687,7 @@ io.sockets.on('connection', function(socket) {
     var tableId = -1;
     var seat = -1;
 
-    var name = playerExists(player,'coolguy9');
+    var name = playerExists(player,id);
     
     checkWallet = function(){
         getPlayerWallet(player,id);
