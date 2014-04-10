@@ -708,7 +708,16 @@ io.sockets.on('connection', function(socket) {
         //look for a seat at an existing table
         // TODO, update code for multiple tables. Consider using something other than an array
         for(i = 0; i < tables.length; i++){
-            if(tables[i] !== null){
+            if(tables[i] === null){
+                console.log("adding player to previously null table: "+i);
+                foundTable = true;
+                var table = new newTable();
+                tables[i] = table;
+                addPlayer(tables[i],player);
+                tableId = i;
+                break;
+            }
+            else{
                 for(j = 0; j < tables[i].seats.length; j++){
                     if(tables[i].seats[j] === null){
                         console.log("adding player to "+i);
