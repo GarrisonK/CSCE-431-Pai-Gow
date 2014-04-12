@@ -512,6 +512,13 @@ depositMoney = function(player,amount){
     console.log(player.id+" for "+amount);
 }
 
+addPlayerExperience = function(player, amount){
+    //adds experience for a player
+    //TODO: complete function stub
+
+    console.log("adding "+amount+" experience for "+player.id);
+}
+
 
 var tables = [];
 var gameStates = ['pregame', 'betting', 'dealing', 'pair selection',
@@ -524,6 +531,7 @@ var newDeck = function() {
 };
 
 var minimumBet = 5;
+var roundWinExp = 20;
 
 var newPlayer = function(name, id, socket, minimumBet) {
     this.name = name;
@@ -1289,6 +1297,7 @@ setInterval(function() {
                                     tables[i].seats[j].socket.emit(
                                         'wallet update', tables[i].seats[j].wallet);
                                     depositMoney(tables[i].seats[j],tables[i].seats[j].bet);
+                                    addPlayerExperience(tables[i].seats[j],roundWinExp);
                                 }
                                 else {
                                     //push
@@ -1319,6 +1328,7 @@ setInterval(function() {
                                 'wallet update',
                                 tables[i].seats[tables[i].banker].wallet);
                             depositMoney(tables[i].seats[tables[i].banker],tables[i].minimumBet);
+                            addPlayerExperience(tables[i].seats[tables[i].banker],roundWinExp);
                         }
                         else if (proundWinner == 2) {
                             //dealer wins
@@ -1355,6 +1365,7 @@ setInterval(function() {
                                     tables[i].seats[j].socket.emit('wallet update',tables[i].seats[j].wallet);
                                     depositMoney(tables[i].seats[tables[i].banker],tables[i].seats[j].bet);
                                     depositMoney(tables[i].seats[j],-1*tables[i].seats[j].bet);
+                                    addPlayerExperience(tables[i].seats[tables[i].banker],roundWinExp);
                                 }
                                 else if(pvproundWinner == 2){
                                     //opponent win
@@ -1366,6 +1377,7 @@ setInterval(function() {
                                     tables[i].seats[j].socket.emit('wallet update',tables[i].seats[j].wallet);
                                     depositMoney(tables[i].seats[tables[i].banker],-1*tables[i].seats[j].bet);
                                     depositMoney(tables[i].seats[j],tables[i].seats[j].bet);
+                                    addPlayerExperience(tables[i].seats[j],roundWinExp);
                                 }
                                 else{
                                     tables[i].seats[tables[i].banker].socket.emit('match result','push');
