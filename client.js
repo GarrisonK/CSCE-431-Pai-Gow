@@ -446,18 +446,6 @@ var bankerSymbolLocations = [[450,450+80],[200,450+80],[750,450+80],[50,250+80],
 
 var tileLocations = [[665,545],[750,545],[98,72],[182,72],[286,72],[370,72],[478,74],[562,74],[666,74],[750,74],[97,229],[181,229],[285,229],[369,229],[477,231],[561,231],[655,231],[749,231],[96,386],[180,386],[284,386],[368,386],[476,388],[560,388],[664,388],[748,388],[96,543],[180,543],[284,543],[368,543],[476,545],[560,545]];
 
-//var dealerTileLocations = [[400,90],[400+1*(tileWidth*tileScale+5),90],[400+2*(tileWidth*tileScale+5),90],[400+3*(tileWidth*tileScale+5),90]];
-// var seatTileLocations = [[400,450],[400+1*(tileWidth*tileScale+5),450],[400+2*(tileWidth*tileScale+5),450],[400+3*(tileWidth*tileScale+5),450]];
-/*
-var seatTileLocations = [[[35,206],[35+1*(tileWidth*tileScale+5),206],[35+2*(tileWidth*tileScale+5),206],[35+3*(tileWidth*tileScale+5),206]],
-                         [[66,362],[66+1*(tileWidth*tileScale+5),362],[66+2*(tileWidth*tileScale+5),362],[66+3*(tileWidth*tileScale+5),362]],
-                         [[198,472],[198+1*(tileWidth*tileScale+5),472],[198+2*(tileWidth*tileScale+5),472],[198+3*(tileWidth*tileScale+5),472]],
-                         [[430,500],[430+1*(tileWidth*tileScale+5),500],[430+2*(tileWidth*tileScale+5),500],[430+3*(tileWidth*tileScale+5),500]],
-                         [[662,498],[662+1*(tileWidth*tileScale+5),498],[662+2*(tileWidth*tileScale+5),498],[662+3*(tileWidth*tileScale+5),498]],
-                         [[844,398],[844+1*(tileWidth*tileScale+5),398],[844+2*(tileWidth*tileScale+5),398],[844+3*(tileWidth*tileScale+5),398]],
-                         [[900,214],[900+1*(tileWidth*tileScale+5),214],[900+2*(tileWidth*tileScale+5),214],[900+3*(tileWidth*tileScale+5),214]]
-                        ];
-*/                    
 var seatTileLocations = [[[450,450],[450+1*(tileWidth*tileScale+5),450],[450+2*(tileWidth*tileScale+5),450],[450+3*(tileWidth*tileScale+5),450]], 
 								 [[200,450],[200+1*(tileWidth*tileScale+5),450],[200+2*(tileWidth*tileScale+5),450],[200+3*(tileWidth*tileScale+5),450]],
 								 [[750,450],[750+1*(tileWidth*tileScale+5),450],[750+2*(tileWidth*tileScale+5),450],[750+3*(tileWidth*tileScale+5),450]],
@@ -502,16 +490,6 @@ $(function(){
     }
 
     drawPlayerTiles = function(){
-        // if(game.state == "dealing" || game.state == "pair selection" || game.state == "tile reveal"){
-        //     drawTile(game.tiles[0],seatTileLocations[game.seat][0][0],seatTileLocations[game.seat][0][1]);
-        //     drawTile(game.tiles[1],seatTileLocations[game.seat][1][0],seatTileLocations[game.seat][1][1]);
-        //     drawTile(game.tiles[2],seatTileLocations[game.seat][2][0],seatTileLocations[game.seat][2][1]);
-        //     drawTile(game.tiles[3],seatTileLocations[game.seat][3][0],seatTileLocations[game.seat][3][1]);
-        // }
-
-        //draw all the other player's tiles
-        // console.log(game.seatsTiles);
-        // console.log(game.activeSeats);
 
         if(game.state == "dealing" || game.state == "pair selection"){
             //if this player is active, draw his tiles
@@ -566,26 +544,14 @@ $(function(){
         else{
             position = bankerSymbolLocations[game.banker];
         }
-        //ctx.fillStyle = "#FFFFFF";
-        // ctx.fillRect(position[0],position[1],20,20);
         ctx.drawImage(buttonImage,bankerCropInfo[0],bankerCropInfo[1],bankerCropInfo[2],bankerCropInfo[3],position[0],position[1],25,25);
         
-        
-        
-        
-        
         //also draw the selection box for banking on players turn
-        //ctx.fillStyle = "#000000";
-        // ctx.fillRect(bankerSelectionInfo[0],bankerSelectionInfo[1],bankerSelectionInfo[2],bankerSelectionInfo[3]);
         if(game.bankOnTurn){
-            // ctx.fillStyle = "#00FF00";
-            //ctx.fillText("Bank",bankerSelectionInfo[0],bankerSelectionInfo[1]);
             ctx.drawImage(buttonImage,bankerButtonInfo[2],bankerButtonInfo[3],bankerButtonInfo[0],bankerButtonInfo[1],
                           bankerSelectionInfo[0],bankerSelectionInfo[1],bankerButtonInfo[0],bankerButtonInfo[1]);
         }
         else{
-            // ctx.fillStyle = "#CC0000";
-            // ctx.fillText("Skip",bankerSelectionInfo[0],bankerSelectionInfo[1]);
             ctx.drawImage(buttonImage,bankerButtonInfo[2],bankerButtonInfo[4],bankerButtonInfo[0],bankerButtonInfo[1],
                           bankerSelectionInfo[0],bankerSelectionInfo[1],bankerButtonInfo[0],bankerButtonInfo[1]);
         }
@@ -593,14 +559,11 @@ $(function(){
 
     drawTileBack = function(x,y){
         ctx.fillStyle = "#000000";
-        //ctx.fillRect(x,y,tileWidth*tileScale,tileHeight*tileScale);
       	 ctx.drawImage(tileImage,titleBlankCropInfo[0],titleBlankCropInfo[1],tileWidth,tileHeight,x,y,tileWidth*tileScale,tileHeight*tileScale);
     }
 
     drawBettingButtons = function(){
         ctx.fillStyle = "#000000";
-        //ctx.fillRect(bet5ButtonInfo[0],bet5ButtonInfo[1],bet5ButtonInfo[2],bet5ButtonInfo[3]);
-        
         ctx.drawImage(buttonImage,bet5CropInfo[0],bet5CropInfo[1],bet5ButtonInfo[2],bet5ButtonInfo[3],bet5ButtonInfo[0],bet5ButtonInfo[1],bet5ButtonInfo[2],bet5ButtonInfo[3]);
         ctx.drawImage(buttonImage,bet5CropInfo[0],bet5CropInfo[2],betDown5ButtonInfo[2],betDown5ButtonInfo[3],betDown5ButtonInfo[0],betDown5ButtonInfo[1],betDown5ButtonInfo[2],betDown5ButtonInfo[3]);
     }
@@ -608,35 +571,22 @@ $(function(){
     
     
     drawSelectionLockButtons = function(){
-        //ctx.fillStyle = "#000000";
-        //ctx.fillRect(selectionLockButtonInfo[0],selectionLockButtonInfo[1],selectionLockButtonInfo[2],selectionLockButtonInfo[3]);
         if(game.selectionLocked){
-            //ctx.fillStyle = "#FF0000";
-            //ctx.fillText("LOCKED",selectionLockButtonInfo[0],selectionLockButtonInfo[1]);
             ctx.drawImage(buttonImage,handLockInfo[2],handLockInfo[4],handLockInfo[0],handLockInfo[1],
                           selectionLockButtonInfo[0],selectionLockButtonInfo[1],handLockInfo[0],handLockInfo[1]);   
         }
         else{
-            //ctx.fillStyle = "#006600";
-            //ctx.fillText("UNLOCKED",selectionLockButtonInfo[0],selectionLockButtonInfo[1]);
-            
             ctx.drawImage(buttonImage,handLockInfo[2],handLockInfo[3],handLockInfo[0],handLockInfo[1],
                           selectionLockButtonInfo[0],selectionLockButtonInfo[1],handLockInfo[0],handLockInfo[1]);   
         }
     }
 
     drawBetLockButton = function(){
-        //ctx.fillStyle = "#000000";
-        // ctx.fillRect(betLockButtonInfo[0],betLockButtonInfo[1],betLockButtonInfo[2],betLockButtonInfo[3]);
         if(game.betsLocked){
-            //ctx.fillStyle = "#FF0000";
-            //ctx.fillText("LOCKED",betLockButtonInfo[0],betLockButtonInfo[1]);
             ctx.drawImage(buttonImage,betLockInfo[2],betLockInfo[4],betLockInfo[0],betLockInfo[1],
                           betLockButtonInfo[0],betLockButtonInfo[1],betLockInfo[0],betLockInfo[1]);
         }
         else{
-            //ctx.fillStyle = "#006600";
-            //ctx.fillText("UNLOCKED",betLockButtonInfo[0],betLockButtonInfo[1]);
             ctx.drawImage(buttonImage,betLockInfo[2],betLockInfo[3],betLockInfo[0],betLockInfo[1],
                           betLockButtonInfo[0],betLockButtonInfo[1],betLockInfo[0],betLockInfo[1]);
         }
@@ -688,7 +638,6 @@ $(function(){
         for(var i = 0; i < game.tiles.length; i++){
             if(game.selectedTiles.indexOf(game.tiles[i]) != -1){
                 //tile is selected
-                //ctx.fillRect(seatTileLocations[game.seat][i][0]+25,seatTileLocations[game.seat][i][1]-25,10,10);
                 ctx.drawImage(tileImage,highlightTitleInfo[0],highlightTitleInfo[1],highlightTitleInfo[2],highlightTitleInfo[3],
                 									seatTileLocations[game.seat][i][0]-5,seatTileLocations[game.seat][i][1]-5,highlightTitleInfo[2]*tileScale,highlightTitleInfo[3]*tileScale);
             }
@@ -700,7 +649,6 @@ $(function(){
                 for(var j = 0; j < game.seatsPairs[i].length; j++){
                     for(var k = 0; k < game.seatsTiles[i].length; k++){
                         if(game.seatsTiles[i][k] == game.seatsPairs[i][j]){
-                            //ctx.fillRect(seatTileLocations[i][k][0]+25,seatTileLocations[i][k][1]-25,10,10);
                             	ctx.drawImage(tileImage,highlightTitleInfo[0],highlightTitleInfo[1],highlightTitleInfo[2],highlightTitleInfo[3],
                 									seatTileLocations[i][k][0]-5,seatTileLocations[i][k][1]-5,highlightTitleInfo[2]*tileScale,highlightTitleInfo[3]*tileScale);
                         }
@@ -714,7 +662,6 @@ $(function(){
         ctx.fillStyle = "#FFFF00";
         for(var i = 0; i < game.dealerTiles.length; i++){
             if(game.dealerSelection.indexOf(game.dealerTiles[i]) != -1){
-                //ctx.fillRect(dealerTileLocations[i][0]+25,dealerTileLocations[i][1]-25,10,10);
                 ctx.drawImage(tileImage,highlightTitleInfo[0],highlightTitleInfo[1],highlightTitleInfo[2],highlightTitleInfo[3],
                 									dealerTileLocations[i][0]-5,dealerTileLocations[i][1]-5,highlightTitleInfo[2]*tileScale,highlightTitleInfo[3]*tileScale);
             }
@@ -857,8 +804,6 @@ $(function(){
 
     drawExitButton = function(){
         ctx.fillStyle = "#000000";
-        //ctx.fillRect(exitButtonInfo[0],exitButtonInfo[1],exitButtonInfo[2],exitButtonInfo[3]);
-        
         ctx.drawImage(buttonImage,exitButtonInfo[4],exitButtonInfo[5],exitButtonInfo[2],exitButtonInfo[3],exitButtonInfo[0],exitButtonInfo[1],exitButtonInfo[2],exitButtonInfo[3]);
        
     }
@@ -898,7 +843,6 @@ $(function(){
         }
         else{
             //Fill background
-            //ctx.fillStyle = "#003300";
             ctx.fillStyle = "#F0FFFF";
             ctx.fillRect(0,0,c.width,c.height);
             ctx.drawImage(tableImage,0,0,c.width,c.height); 
@@ -931,13 +875,6 @@ $(function(){
            
 
             drawBankerSymbol();
-
-            // if(game.banker == -1){
-            //     drawBankerSymbol(500,30);
-            // }
-            // else{
-            //     drawBankerSymbol(500,550);
-            // }
 
             if(tileReady){
                 drawPlayerTiles();

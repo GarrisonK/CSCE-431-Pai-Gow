@@ -510,6 +510,13 @@ depositMoney = function(player,amount){
     //amount is positive for deposits, negative for withdrawals
     //TODO complete function stub
     console.log(player.id+" for "+amount);
+
+    if(amount < 0){
+
+    }
+    else{
+
+    }
 }
 
 addPlayerExperience = function(player, amount){
@@ -547,6 +554,10 @@ var newPlayer = function(name, id, socket, minimumBet) {
     this.nameFound = false;
     this.playerFound = false;
     this.walletUpdated = false; //A flag which is set to true when this players wallet has been updated
+    this.experience = 0;
+    this.firstName = "";
+    this.lastName = "";
+    this.level = 0;
 };
 
 var newTable = function() {
@@ -690,13 +701,8 @@ io.sockets.on('connection', function(socket) {
 
     console.log("QUERY: "+socket.manager.handshaken[socket.id].query.email);
 
-    // console.log(request.query.email);
-    // getPlayerName('coolguy9');
-
     //TODO replace coolguy9 with data supplied by the lobby team
-    // var id = 'coolguy9';
-    // var id = socket.id;
-    var id = socket.manager.handshaken[socket.id].query.email;
+    var id = socket.manager.handshaken[socket.id].query.email; //get id from client
     var player = new newPlayer("name", id, socket, minimumBet);
     var tableId = -1;
     var seat = -1;
@@ -1267,8 +1273,6 @@ setInterval(function() {
                     if (tables[i].banker == -1) {
                         //dealer is the banker
 
-                        // TODO send wallet updates to server
-
                         for (j = 0; j < tables[i].seats.length; j++) {
                             if (tables[i].seats[j] !== null && tables[i].activeSeats[j] === true) {
                                 var roundWinner = getRoundWinner(
@@ -1423,27 +1427,6 @@ setInterval(function() {
                             updatePlayerWallet(tables[i].seats[j],tables[i].seats[j].id);
                         }
                     }
-
-                    // var socketsToKick = [];
-                    // for (j = 0; j < tables[i].seats.length; j++) {
-                    //     if (tables[i].seats[j] !== null) {
-                    //         if (tables[i].seats[j].wallet < tables[i].minimumBet) {
-                    //             //This player doesn't have enough money to play
-                    //             tables[i].seats[j].socket.emit(
-                    //                 'insufficient funds');
-                    //             // tables[i].seats[j] = null;
-                    //             // tables[i].seats[j].socket.disconnect();
-                    //             socketsToKick.push(tables[i].seats[j].socket);
-                    //         }
-                    //         else{
-                    //             seatsWallets[j] = tables[i].seats[j].wallet;
-                    //         }
-                    //     }
-                    // }
-
-                    // for(j = 0; j < socketsToKick.length; j++){
-                    //     socketsToKick[j].disconnect();
-                    // }
                 }
             }
         }
