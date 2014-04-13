@@ -662,6 +662,11 @@ var app = http.createServer(function(req, res) {
         res.writeHead(200, {'Content-Type' : 'audio/x-wav'});
         res.end(loseSound, 'binary');
     }
+    else if (action == '/sound/draw.wav') {
+        var drawSound = fs.readFileSync('./sound/draw.wav');
+        res.writeHead(200, {'Content-Type' : 'audio/x-wav'});
+        res.end(drawSound, 'binary');
+    }
     else if(action == '/exitPage.html'){
         var exitPage = fs.readFileSync('./exitPage.html');
         res.writeHead(200, {'content-Type' : 'text/html'});

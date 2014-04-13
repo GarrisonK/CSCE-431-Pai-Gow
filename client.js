@@ -61,6 +61,10 @@ var loseSound = new Howl({
     urls:['sound/lose.wav']
 });
 
+var drawSound = new Howl({
+	 urls:['sound/draw.wav']
+});
+
 
 
 //Pai Gow tile infomation code
@@ -613,9 +617,9 @@ $(function(){
     drawWagers = function(){
         ctx.fillStyle = "#000000";
         ctx.font = '15pt Calibri';
-        if(game.state == "betting"){
+        if(game.state == "betting" && (game.seat != game.banker) ){
             ctx.fillText("$ "+game.bet,betLockButtonInfo[0]+20,betLockButtonInfo[1]+35);
-            ctx.fillText("$ "+game.bet,betLockButtonInfo[0]+20,betLockButtonInfo[1]+35);
+           
         }
         ctx.fillText("$"+game.minimumBet,dealerTileLocations[1][0],dealerTileLocations[1][1]-10);
 
@@ -871,12 +875,11 @@ $(function(){
             ctx.font = '20pt Calibri';
             ctx.fillText("State: "+game.state,400,270);
 				if(game.state == "dealing" && unmute && game.playedShuffleSoundOnce === false)
-				{	
-                    shuffle.load();				
-					shuffle.play();
+				{	                   				
+						  shuffle.play();
                     game.playedShuffleSoundOnce = true;
 				}
-				if(game.state == "betting")
+				if(game.state == "betting" && (game.seat != game.banker))
 				{
             	drawBetLockButton();
            	   drawBettingButtons();
@@ -1133,6 +1136,7 @@ $(function(){   //document is ready
     		
         if(result == 'push'){
             $("#messages").prepend("<li>Matched ended in a push</li>");
+            drawSound.play();
         }
         if(result == 'banker win'){
             $("#messages").prepend("<li>Banker win</li>");
