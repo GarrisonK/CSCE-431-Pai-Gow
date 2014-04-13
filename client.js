@@ -36,13 +36,30 @@ catch(e){
 
 
 //Audio files
-var shuffle = new Audio("/sound/Shuffle.mp3");
-// var betUp = new Audio("/sound/betUp.wav");
+//Audio files
 var betUp = new Howl({
     urls:['/sound/betUp.wav']
 });
-var betDown = new Audio("/sound/betDown.wav");
-var clicked = new Audio("/sound/buttonClick.mp3");
+
+var betDown = new Howl({
+    urls:['/sound/betDown.wav']
+});
+
+var clicked = new Howl({
+    urls:['/sound/buttonClick.wav']
+});
+
+var shuffle = new Howl({
+    urls:['sound/Shuffle.wav']
+});
+
+var winSound = new Howl({
+    urls:['sound/win.wav']
+});
+
+var loseSound = new Howl({
+    urls:['sound/lose.wav']
+});
 
 
 
