@@ -1128,14 +1128,25 @@ $(function(){   //document is ready
         game.wallet = wallet;
     });
     socket.on('match result',function(result){
+    
+    		//$("#messages").prepend("<li>Seat = "+game.seat+" Banker = "+game.banker+"</li>");
+    		
         if(result == 'push'){
             $("#messages").prepend("<li>Matched ended in a push</li>");
         }
         if(result == 'banker win'){
             $("#messages").prepend("<li>Banker win</li>");
+            if(game.seat != game.banker)
+            	loseSound.play();
+            else
+            	winSound.play();
         }
         if(result == 'opponent win'){
             $("#messages").prepend("<li>Opponent win</li>");
+            if(game.seat != game.banker)
+            	winSound.play();
+            else 
+            	loseSound.play();
         }
     });
     // Information about the game from the server
@@ -1202,12 +1213,8 @@ $(function(){   //document is ready
                 }
                 if(game.banker === -1 || game.bet+5 <= game.seatsWallets[game.banker]/(numActivePlayers-1)){
                     game.bet = game.bet+5;
-                    
-                   if(unmute)
-                   {
-                        // betUp.load();
-                         betUp.play();
-		             }
+                    betUp.play();
+		            
                 }
             }
             updateGameInfo();
@@ -1223,11 +1230,9 @@ $(function(){   //document is ready
             }
             else if(game.wallet >= game.bet+5 && game.bet > 5){
                game.bet = game.bet-5;
-               if(unmute)
-                {
-                    betDown.load();
-		              betDown.play();
-		          }
+               
+		         betDown.play();
+		          
             }
             updateGameInfo();
         }
@@ -1237,12 +1242,9 @@ $(function(){   //document is ready
         if(x>betLockButtonInfo[0] && x<betLockButtonInfo[0]+betLockInfo[0] && y > betLockButtonInfo[1] && y < betLockButtonInfo[1]+betLockInfo[1]){
             if(game.state == "betting" && game.banker != game.seat){
                 console.log(game.betsLocked);
-                if(unmute)
-                {
-                        clicked.load();
+               
 		              clicked.play();
-		          }
-		          
+		          		          
                 if(!game.betsLocked){
                     socket.emit("bet locked",game.bet);
                     game.betsLocked = true;
@@ -1257,14 +1259,10 @@ $(function(){   //document is ready
         // Pair lock button
         if(x>selectionLockButtonInfo[0] && x<selectionLockButtonInfo[0]+handLockInfo[0] && y>selectionLockButtonInfo[1] && y < selectionLockButtonInfo[1]+handLockInfo[1] && game.activeSeats[game.seat] === true){
             console.log("clicked on pair lock button");
-            if(game.state == "pair selection"){
-            
-                if(unmute)
-                {	
-                    clicked.load();					
+            if(game.state == "pair selection"){            
+              				
 		              clicked.play();
-		          }
-		          
+		          		          
                 if(!game.selectionLocked){
                     if(game.state == "pair selection" && game.selectedTiles.length == 2 && !game.selectionLocked){
                         game.selectionLocked = true;
@@ -1284,6 +1282,9 @@ $(function(){   //document is ready
         for(var i = 0; i < 4; i++){
             if(x>seatTileLocations[game.seat][i][0] && x<seatTileLocations[game.seat][i][0]+tileWidth*tileScale && y>seatTileLocations[game.seat][i][1] && y < seatTileLocations[game.seat][i][1]+tileHeight*tileScale){
                 console.log("clicked on "+i);
+                
+                clicked.play();
+                
                 if(game.state == "pair selection" && !game.selectionLocked){
                     // Tile i was clicked on and its state should flip
                     if(game.clickedTiles.indexOf(i) != -1){
@@ -1304,11 +1305,9 @@ $(function(){   //document is ready
 
         // Click on banker selection button
         if(x>bankerSelectionInfo[0] && x<bankerSelectionInfo[0]+bankerButtonInfo[0] && y>bankerSelectionInfo[1] && y<bankerSelectionInfo[1]+bankerButtonInfo[1]){
-     	    if(unmute)
-             {
-                    clicked.load();
+     	    
 	              clicked.play();
-	          }
+	          
             if(game.bankOnTurn){
                 game.bankOnTurn = false;
                 socket.emit('bank on turn',false);
@@ -1326,23 +1325,23 @@ $(function(){   //document is ready
         		if(unmute)
         		{
         			unmute = false;
+        			Howler.mute(); 
         		}
         		else 
         		{
         			unmute = true;
-                    clicked.load();
-	               clicked.play();
+               Howler.unmute();
+	             clicked.play();
         		}
         }
 
         //Exit button
         if(x>exitButtonInfo[0] && x<exitButtonInfo[0]+exitButtonInfo[2] && y>exitButtonInfo[1] && y<exitButtonInfo[1]+exitButtonInfo[3]){
             console.log("exit button clicked");
-            if(unmute)
-             {
-                clicked.load();
+           
+               
 	              clicked.play();
-	          }
+	          
             if(game.exitOnRoundEnd === true){
                 game.exitOnRoundEnd = false;
             }
