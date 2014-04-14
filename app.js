@@ -431,6 +431,7 @@ getPlayerInfo = function(email){
       //the whole response has been recieved, so we just print it out here
       response.on('end', function () {
         console.log("RESULT: "+str);
+
         //TODO complete function stub
       });
     }
@@ -456,12 +457,14 @@ getPlayerWallet = function(player,email){
 
       //the whole response has been recieved
       response.on('end', function () {
-        console.log("RESULT: "+str);
-        //TODO complete function stub
-        var money = 100; //replace with the actual amount returned from the bank
-        player.wallet = money;
+        var jsonOb = JSON.parse(str);
+        player.wallet = jsonOb['moneez'];
+        player.firstName = jsonOb['firstname'];
+        player.lastName = jsonOb['lastname'];
+        player.level = jsonOb['level'];
+        player.experience = jsonOb['xp'];
         player.walletUpdated = true;
-        if(money >= minimumBet){
+        if(player.wallet >= minimumBet){
             assignTable();
         }
         else{
@@ -489,12 +492,10 @@ updatePlayerWallet = function(player,email){
 
       //the whole response has been recieved
       response.on('end', function () {
-        console.log("RESULT: "+str);
-        //TODO complete function stub
-        var money = 100; //replace with the actual amount returned from the bank
-        player.wallet = money;
+        var jsonOb = JSON.parse(str);
+        player.wallet = jsonOb['moneez'];
         player.walletUpdated = true;
-        if(money >= minimumBet){
+        if(player.wallet >= minimumBet){
             //do nothing
         }
         else{
@@ -512,10 +513,90 @@ depositMoney = function(player,amount){
     console.log(player.id+" for "+amount);
 
     if(amount < 0){
+        var data = {
+            email: player.id,
+            withdraw: -1*amount
+        };
+
+        var dataString = JSON.stringify(data);
+        // console.log(dataString);
+
+        var headers = {
+            'Content-Type': 'application/json',
+            'Content-Length': dataString.length
+        };
+
+        // console.log(headers);
+
+
+        var options = {
+            host: 'heroku-team-bankin.herokuapp.com',
+            port: 80,
+            path: '/services/account/withdraw',
+            method: 'PUT',
+            headers: headers
+        };
+
+        var req = http.request(options, function(res) {
+            res.setEncoding('utf-8');
+
+            var responseString = '';
+
+            res.on('data', function(data) {
+                responseString += data;
+            });
+
+            res.on('end', function() {
+                var resultObject = JSON.parse(responseString);
+                console.log(resultObject);
+            });
+        });
+        req.write(dataString);
+        req.end();
+
 
     }
     else{
+        var data = {
+            email: player.id,
+            deposit: amount
+        };
 
+        var dataString = JSON.stringify(data);
+        console.log(dataString);
+
+        var headers = {
+            'Content-Type': 'application/json',
+            'Content-Length': dataString.length
+        };
+
+        // console.log(headers);
+
+
+        var options = {
+            host: 'heroku-team-bankin.herokuapp.com',
+            port: 80,
+            path: '/services/account/deposit',
+            method: 'PUT',
+            headers: headers
+        };
+
+        var req = http.request(options, function(res) {
+            res.setEncoding('utf-8');
+
+            var responseString = '';
+
+            res.on('data', function(data) {
+                responseString += data;
+            });
+
+            res.on('end', function() {
+                var resultObject = JSON.parse(responseString);
+                // console.log(resultObject);
+            });
+        });
+        req.write(dataString);
+        req.end();
     }
 }
 
@@ -672,7 +753,7 @@ var app = http.createServer(function(req, res) {
         res.writeHead(200, {'content-Type' : 'text/html'});
         res.end(exitPage);
     }
-    else {
+    else if(action == '/'){
         // console.log("REQUEST: %j",request);
         console.log("USER: "+request.query.email);
 
@@ -683,29 +764,35 @@ var app = http.createServer(function(req, res) {
             res.end(exitPage);
             invalidUser = true;
         }
+        else{
 
-        var duplicatePlayer = false;
-        //Check if this player is currently in a game
-        for(var i = 0; i < tables.length; i++){
-            if(tables[i] !== null){
-                // console.log("i: "+i);
-                for(var j = 0; j < tables[i].seats.length; j++){
-                    if(tables[i].seats[j] !== null){
-                        if(tables[i].seats[j].id == request.query.email){
-                            var exitPage = fs.readFileSync('./exitPage.html');
-                            res.writeHead(200, {'content-Type' : 'text/html'});
-                            res.end(exitPage);
-                            duplicatePlayer = true;
-                            break;
+            var duplicatePlayer = false;
+            //Check if this player is currently in a game
+            for(var i = 0; i < tables.length; i++){
+                if(tables[i] !== null){
+                    // console.log("i: "+i);
+                    for(var j = 0; j < tables[i].seats.length; j++){
+                        if(tables[i].seats[j] !== null){
+                            if(tables[i].seats[j].id == request.query.email){
+                                var exitPage = fs.readFileSync('./exitPage.html');
+                                res.writeHead(200, {'content-Type' : 'text/html'});
+                                res.end(exitPage);
+                                duplicatePlayer = true;
+                                break;
+                            }
                         }
                     }
                 }
             }
+            if(!duplicatePlayer && !invalidUser){
+                res.writeHead(200, {'content-Type' : 'text/html'});
+                res.end(index);
+            }
         }
-        if(!duplicatePlayer && !invalidUser){
-            res.writeHead(200, {'content-Type' : 'text/html'});
-            res.end(index);
-        }
+    }
+    else{
+        //TODO put something here
+        console.log("some strange request");
     }
 }), io = sio.listen(app);
 
