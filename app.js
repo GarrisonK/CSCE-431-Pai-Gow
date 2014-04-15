@@ -464,6 +464,12 @@ getPlayerWallet = function(player,email){
         player.level = jsonOb['level'];
         player.experience = jsonOb['xp'];
         player.walletUpdated = true;
+        try{
+            player.socket.emit('player info update',player.wallet,player.level,player.experience,player.firstName,player.lastName);
+        }
+        catch(e){
+            console.log(e);
+        }
         if(player.wallet >= minimumBet){
             assignTable();
         }
@@ -495,6 +501,16 @@ updatePlayerWallet = function(player,email){
         var jsonOb = JSON.parse(str);
         player.wallet = jsonOb['moneez'];
         player.walletUpdated = true;
+        player.firstName = jsonOb['firstname'];
+        player.lastName = jsonOb['lastname'];
+        player.level = jsonOb['level'];
+        player.experience = jsonOb['xp'];
+        try{
+            player.socket.emit('player info update',player.wallet,player.level,player.experience,player.firstName,player.lastName);
+        }
+        catch(e){
+            console.log(e);
+        }
         if(player.wallet >= minimumBet){
             //do nothing
         }
@@ -602,10 +618,46 @@ depositMoney = function(player,amount){
 
 addPlayerExperience = function(player, amount){
     //adds experience for a player
-    //TODO: complete function stub
 
     console.log("adding "+amount+" experience for "+player.id);
-}
+
+    var data = {
+        email: player.id,
+        xp: amount
+    };
+
+    var dataString = JSON.stringify(data);
+
+    var headers = {
+        'Content-Type': 'application/json',
+        'Content-Length': dataString.length
+    };
+
+    var options = {
+        host: 'heroku-team-bankin.herokuapp.com',
+        port: 80,
+        path: '/services/account/addxp',
+        method: 'PUT',
+        headers: headers
+    };
+
+    var req = http.request(options, function(res) {
+        res.setEncoding('utf-8');
+
+        var responseString = '';
+
+        res.on('data', function(data) {
+            responseString += data;
+        });
+
+        res.on('end', function() {
+            var resultObject = JSON.parse(responseString);
+            // console.log(resultObject);
+        });
+    });
+    req.write(dataString);
+    req.end();
+};
 
 
 var tables = [];

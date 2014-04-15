@@ -19,6 +19,8 @@ body {
 #topbar {
 	background-color:#400000;
 	min-height: 8%;
+	font-size: 25;
+	color: #FFFFFF;
 }
 
 #gamewindow {

@@ -500,6 +500,10 @@ $(function(){
     }
     
     
+    drawPlayerInformation = function(){
+        //places the player name, xp, wallet, level in the top bar of the page
+        $("#topbar span").text(""+game.firstname+" "+game.lastname+",   Level: "+game.level+" ("+game.experience+" experience)");
+    }
 
     drawTile = function(id,x,y){
         try{
@@ -980,6 +984,10 @@ game['stateLength'] = [];
 game['exitOnRoundEnd'] = false;
 game['accountExists'] = 0;
 game['playedShuffleSoundOnce'] = false;
+game['level'] = 0;
+game['experience'] = 0;
+game['firstname'] = "";
+game['lastname'] = "";
 
 var updateGameInfo = function(){
     //Prints seconds remaining, game state, etc
@@ -1187,6 +1195,14 @@ $(function(){   //document is ready
 
     socket.on('duplicate account',function(){
         game.accountExists = -1;
+    });
+    socket.on('player info update',function(wallet,level,xp,first,last){
+        game.level = level;
+        game.experience = xp;
+        game.firstname = first;
+        game.lastname = last;
+        drawPlayerInformation();
+
     });
 
     setInterval(function(){
