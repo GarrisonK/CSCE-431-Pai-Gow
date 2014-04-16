@@ -988,6 +988,7 @@ game['level'] = 0;
 game['experience'] = 0;
 game['firstname'] = "";
 game['lastname'] = "";
+game['exit'] = false;   //Used for leaving the window
 
 var updateGameInfo = function(){
     //Prints seconds remaining, game state, etc
@@ -1204,6 +1205,10 @@ $(function(){   //document is ready
         drawPlayerInformation();
 
     });
+    socket.on('table removed',function(){
+        game.exit = true;
+        window.location.replace("./exitPage.html");
+    });
 
     setInterval(function(){
         updateGameInfo();
@@ -1374,7 +1379,12 @@ $(function(){   //document is ready
 });
 
 window.onbeforeunload = function() {
-    if(game.state != "endgame"){
-        return "Please don't exit the game while it is in progress";
+    if(game.exit){
+
+    }
+    else{
+        if(game.state != "endgame"){
+            return "Please don't exit the game while it is in progress";
+        }
     }
 }

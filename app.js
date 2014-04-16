@@ -691,6 +691,7 @@ var newPlayer = function(name, id, socket, minimumBet) {
     this.firstName = "";
     this.lastName = "";
     this.level = 0;
+    this.seat = -1;
 };
 
 var newTable = function() {
@@ -718,6 +719,7 @@ var newTable = function() {
 var addPlayer = function(table, player) {
     var seat = table.seats.indexOf(null);
     table.seats[seat] = player; //place player in first
+    player.seat = seat;
     //available seat
     if(table.state == "pregame"){
         table.activeSeats[seat] = true;
@@ -984,35 +986,62 @@ io.sockets.on('connection', function(socket) {
         //find the table that player is at, remove him from the seat, and remove
         //that table
         // console.log("tableid: "+tableId);
-        if(tableId !== -1){
-            for (j = 0; j < tables[tableId].seats.length; j++) {
-                if(tables[tableId].seats[j] !== null){
-                    if (tables[tableId].seats[j].id == player.id) {
-                        tables[tableId].seats[j] = null;
-                        tables[tableId].activeSeats[j] = false;
+        if(tableId !== 1 && player.seat !== -1){
+            player = tables[tableId].seats[player.seat];
+        }
 
-                        //get the number of players at this table
-                        var playerCount = 0;
-                        for(var k = 0; k < tables[tableId].seats.length; k++){
-                            if(tables[tableId].seats[k] !== null){
-                                playerCount += 1;
+        if(player === null){
+            //do nothing
+        }
+        else{
+            if(tableId !== -1){
+                console.log("disconnect on table: "+tableId);
+                console.log("state: "+tables[tableId].state);
+                if(tables[tableId].state === "betting" || tables[tableId].state === "dealing" || tables[tableId].state === "tile reveal" || tables[tableId].state == "pair selection"){
+                    //Destroy this table
+                    console.log("Destroy this table");
+                    for(j = 0; j < tables[tableId].seats.length; j++){
+                        if(tables[tableId].seats[j] !== null && tables[tableId].seats[j].id !== player.id){
+                            var sock = tables[tableId].seats[j].socket;
+                            tables[tableId].seats[j] = null;
+                            sock.emit('table removed');
+                            sock.disconnect();
+                        }
+                    }
+                    tables[tableId] = null;
+                }
+                else{
+                    // This player left at a valid time
+                    for (j = 0; j < tables[tableId].seats.length; j++) {
+                        if(tables[tableId].seats[j] !== null){
+                            if (tables[tableId].seats[j].id == player.id) {
+                                tables[tableId].seats[j] = null;
+                                tables[tableId].activeSeats[j] = false;
+
+                                //get the number of players at this table
+                                var playerCount = 0;
+                                for(var k = 0; k < tables[tableId].seats.length; k++){
+                                    if(tables[tableId].seats[k] !== null){
+                                        playerCount += 1;
+                                    }
+                                }
+                                if(playerCount === 0){
+                                    //this table has no more players, remove it
+                                    // tables.splice(tableId, 1);
+                                    tables[tableId] = null;
+                                    console.log("removed table "+tableId);
+                                }
+                                else{
+                                    //Notify all players at this table of the disconnection
+                                    for(var k = 0; k < tables[tableId].seats.length; k++){
+                                        if(tables[tableId].seats[k] !== null){
+                                            tables[tableId].seats[k].socket.emit('active players update',tables[tableId].activeSeats);
+                                        }
+                                    }    
+                                }
+                                break;
                             }
                         }
-                        if(playerCount === 0){
-                            //this table has no more players, remove it
-                            // tables.splice(tableId, 1);
-                            tables[tableId] = null;
-                            console.log("removed table "+tableId);
-                        }
-                        else{
-                            //Notify all players at this table of the disconnection
-                            for(var k = 0; k < tables[tableId].seats.length; k++){
-                                if(tables[tableId].seats[k] !== null){
-                                    tables[tableId].seats[k].socket.emit('active players update',tables[tableId].activeSeats);
-                                }
-                            }    
-                        }
-                        break;
                     }
                 }
             }
