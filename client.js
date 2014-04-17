@@ -1039,14 +1039,14 @@ $(function(){   //document is ready
         game.activeSeats = active;
         game.seatsWallets = wallets;
         game.accountExists = 1;
-        $("#messages").prepend("<li>Got a connection from the server</li>");
+        // $("#messages").prepend("<li>Got a connection from the server</li>");
         updateGameInfo();
     });
     socket.on('bet lock confirm',function(bet){
-        $("#messages").prepend("<li>Server confirms bet lock at $"+bet+"</li>");
+        // $("#messages").prepend("<li>Server confirms bet lock at $"+bet+"</li>");
     });
     socket.on('bet unlock confirm',function(){
-        $("#messages").prepend("<li>Server confirms bet unlock.</li>");
+        // $("#messages").prepend("<li>Server confirms bet unlock.</li>");
     });
 
     // Handle state changes
@@ -1094,27 +1094,27 @@ $(function(){   //document is ready
         }
         game.lastStateChange = time;
         updateGameInfo();
-        $("#messages").prepend("<li>Game state changed to "+state+"</li>");
+        // $("#messages").prepend("<li>Game state changed to "+state+"</li>");
     });
 
     socket.on('confirm tile selection',function(pair){
-        $("#messages").prepend("<li>Server confirms pair selection: "+pair+"</li>");
+        // $("#messages").prepend("<li>Server confirms pair selection: "+pair+"</li>");
         game.lastConfirmedSelection = pair;
         //on the confirmation, change the highlighted tiles
     });
 
     socket.on('finalize tile selection',function(pair){
-        $("#messages").prepend("<li>Server finalizes pair selection: "+pair+"</li>");
+        // $("#messages").prepend("<li>Server finalizes pair selection: "+pair+"</li>");
         game.lastConfirmedSelection = pair;
         game.selectedTiles = pair;
     });
 
     socket.on('player dealt',function(tile){
         game.tiles.push(tile);
-        $("#messages").prepend("<li>Player dealt tile "+tile+"</li>");
+        // $("#messages").prepend("<li>Player dealt tile "+tile+"</li>");
     });
     socket.on('other player tiles',function(id,tiles,pair){
-        $("#messages").prepend("<li>Player \'"+id+"\' dealt tile "+tiles+" and selected pair "+pair+"</li>");
+        // $("#messages").prepend("<li>Player \'"+id+"\' dealt tile "+tiles+" and selected pair "+pair+"</li>");
         if(id == 'dealer'){
             game.dealerTiles = tiles;
             game.dealerSelection = pair;
@@ -1130,13 +1130,13 @@ $(function(){   //document is ready
     });
     socket.on('confirm selection locked',function(pair){
         game.lastConfirmedSelection = pair;
-        $("#messages").prepend("<li>Server confirms pair locked: "+pair+"</li>");
+        // $("#messages").prepend("<li>Server confirms pair locked: "+pair+"</li>");
     });
     socket.on('confirm selection unlocked',function(){
-        $("#messages").prepend("<li>Server confirms pair unlocked</li>");
+        // $("#messages").prepend("<li>Server confirms pair unlocked</li>");
     });
     socket.on('wallet update',function(wallet){
-        $("#messages").prepend("<li>Wallet update: "+wallet+"</li>");
+        // $("#messages").prepend("<li>Wallet update: "+wallet+"</li>");
         game.wallet = wallet;
     });
     socket.on('match result',function(result){
@@ -1144,18 +1144,18 @@ $(function(){   //document is ready
     		//$("#messages").prepend("<li>Seat = "+game.seat+" Banker = "+game.banker+"</li>");
     		
         if(result == 'push'){
-            $("#messages").prepend("<li>Matched ended in a push</li>");
+            // $("#messages").prepend("<li>Matched ended in a push</li>");
             drawSound.play();
         }
         if(result == 'banker win'){
-            $("#messages").prepend("<li>Banker win</li>");
+            // $("#messages").prepend("<li>Banker win</li>");
             if(game.seat != game.banker)
             	loseSound.play();
             else
             	winSound.play();
         }
         if(result == 'opponent win'){
-            $("#messages").prepend("<li>Opponent win</li>");
+            // $("#messages").prepend("<li>Opponent win</li>");
             if(game.seat != game.banker)
             	winSound.play();
             else 
@@ -1373,7 +1373,7 @@ $(function(){   //document is ready
             else{
                 game.exitOnRoundEnd = true;
             }
-            $("#messages").prepend("<li>Exit at end of round: "+game.exitOnRoundEnd+"</li>");
+            // $("#messages").prepend("<li>Exit at end of round: "+game.exitOnRoundEnd+"</li>");
         }
     });
 });

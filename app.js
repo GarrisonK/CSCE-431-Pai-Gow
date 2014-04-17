@@ -663,7 +663,7 @@ addPlayerExperience = function(player, amount){
 var tables = [];
 var gameStates = ['pregame', 'betting', 'dealing', 'pair selection',
                   'tile reveal', 'endgame'];
-var stateLength = [0,10000,5000,10000,10000,1000];
+var stateLength = [0,10000,5000,20000,7000,1000];
 
 var newDeck = function() {
     this.tiles = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17,
