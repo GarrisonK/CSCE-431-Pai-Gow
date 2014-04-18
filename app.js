@@ -4,6 +4,7 @@ index = require('fs').readFileSync(__dirname + '/index.html'),
 fs = require('fs'),
 url = require('url');
 var util = require('util');
+var qs = require('querystring');
 
 var dots = [3, 6, 12, 12, 2, 2, 8, 8, 4, 4, 10, 10, 6, 6, 4, 4, 11, 11, 10, 10,
             7, 7, 6, 6, 9, 9, 8, 8, 7, 7, 5, 5];
@@ -732,7 +733,46 @@ var app = http.createServer(function(req, res) {
     // console.log("REQUEST: %j",request);
     var action = request.pathname;
     console.log("ACTION: "+action);
-    console.log(request);
+    if(req.method == "POST"){
+        console.log("\n\n\nFound post: ");
+        // console.log(req);
+        var body = '';
+        req.on('data',function(data){
+            body += data;
+        });
+        req.on('end',function(){
+            var jso = JSON.parse(body);
+            console.log(jso.email);
+            var email = jso.email; //This is the email
+
+            console.log("USER: "+email);
+
+
+            var duplicatePlayer = false;
+            //Check if this player is currently in a game
+            for(var i = 0; i < tables.length; i++){
+                if(tables[i] !== null){
+                    // console.log("i: "+i);
+                    for(var j = 0; j < tables[i].seats.length; j++){
+                        if(tables[i].seats[j] !== null){
+                            if(tables[i].seats[j].id == request.query.email){
+                                var exitPage = fs.readFileSync('./exitPage.html');
+                                res.writeHead(200, {'content-Type' : 'text/html'});
+                                res.end(exitPage);
+                                duplicatePlayer = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+            if(!duplicatePlayer){
+                
+                res.writeHead(200, {'content-Type' : 'text/html'});
+                res.end(index);
+            }
+        });
+    }
     if (action == '/style.css') {
         var style = fs.readFileSync('./style.css');
         res.writeHead(200, {'Content-Type' : 'text/css'});
@@ -810,40 +850,40 @@ var app = http.createServer(function(req, res) {
     }
     else if(action == '/'){
         // console.log("REQUEST: %j",request);
-        console.log("USER: "+request.query.email);
+        // console.log("USER: "+request.query.email);
 
-        var invalidUser = false;
-        if(typeof request.query.email === 'undefined'){
-            var exitPage = fs.readFileSync('./exitPage.html');
-            res.writeHead(200, {'content-Type' : 'text/html'});
-            res.end(exitPage);
-            invalidUser = true;
-        }
-        else{
+        // var invalidUser = false;
+        // if(typeof request.query.email === 'undefined'){
+        //     var exitPage = fs.readFileSync('./exitPage.html');
+        //     res.writeHead(200, {'content-Type' : 'text/html'});
+        //     res.end(exitPage);
+        //     invalidUser = true;
+        // }
+        // else{
 
-            var duplicatePlayer = false;
-            //Check if this player is currently in a game
-            for(var i = 0; i < tables.length; i++){
-                if(tables[i] !== null){
-                    // console.log("i: "+i);
-                    for(var j = 0; j < tables[i].seats.length; j++){
-                        if(tables[i].seats[j] !== null){
-                            if(tables[i].seats[j].id == request.query.email){
-                                var exitPage = fs.readFileSync('./exitPage.html');
-                                res.writeHead(200, {'content-Type' : 'text/html'});
-                                res.end(exitPage);
-                                duplicatePlayer = true;
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
-            if(!duplicatePlayer && !invalidUser){
-                res.writeHead(200, {'content-Type' : 'text/html'});
-                res.end(index);
-            }
-        }
+        //     var duplicatePlayer = false;
+        //     //Check if this player is currently in a game
+        //     for(var i = 0; i < tables.length; i++){
+        //         if(tables[i] !== null){
+        //             // console.log("i: "+i);
+        //             for(var j = 0; j < tables[i].seats.length; j++){
+        //                 if(tables[i].seats[j] !== null){
+        //                     if(tables[i].seats[j].id == request.query.email){
+        //                         var exitPage = fs.readFileSync('./exitPage.html');
+        //                         res.writeHead(200, {'content-Type' : 'text/html'});
+        //                         res.end(exitPage);
+        //                         duplicatePlayer = true;
+        //                         break;
+        //                     }
+        //                 }
+        //             }
+        //         }
+        //     }
+        //     if(!duplicatePlayer && !invalidUser){
+        //         res.writeHead(200, {'content-Type' : 'text/html'});
+        //         res.end(index);
+        //     }
+        // }
     }
     else{
         //TODO put something here
