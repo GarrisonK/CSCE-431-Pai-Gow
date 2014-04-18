@@ -732,6 +732,7 @@ var app = http.createServer(function(req, res) {
     // console.log("REQUEST: %j",request);
     var action = request.pathname;
     console.log("ACTION: "+action);
+    console.log(request);
     if (action == '/style.css') {
         var style = fs.readFileSync('./style.css');
         res.writeHead(200, {'Content-Type' : 'text/css'});

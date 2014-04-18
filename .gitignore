@@ -219,3 +219,5 @@ node_modules/
 
 #combined app/tests file
 app_merged.js
+
+postTester.js
