@@ -1,6 +1,6 @@
 var http = require('http'),
 sio = require('socket.io'),
-index = require('fs').readFileSync(__dirname + '/index.html'),
+index = require('fs').readFileSync(__dirname + '/index.html','utf8'),
 fs = require('fs'),
 url = require('url');
 var util = require('util');
@@ -733,7 +733,8 @@ var app = http.createServer(function(req, res) {
     // console.log("REQUEST: %j",request);
     var action = request.pathname;
     console.log("ACTION: "+action);
-    if(req.method == "POST"){
+    console.log("request type: "+req.method);
+    if(req.method === "POST"){
         console.log("\n\n\nFound post: ");
         // console.log(req);
         var body = '';
@@ -741,11 +742,16 @@ var app = http.createServer(function(req, res) {
             body += data;
         });
         req.on('end',function(){
-            var jso = JSON.parse(body);
-            console.log(jso.email);
-            var email = jso.email; //This is the email
+            console.log("end json transmission");
+            console.log("body: "+body);
+            //var jso = JSON.parse(body);
+            //console.log("json: "+jso+"\n\n\n");
+            //console.log(jso.email);
+            //var email = jso.email; //This is the email
+            var email = body.slice(6)
+            email = email.replace("%40","@");
 
-            console.log("USER: "+email);
+            console.log("USER email: "+email);
 
 
             var duplicatePlayer = false;
@@ -767,9 +773,8 @@ var app = http.createServer(function(req, res) {
                 }
             }
             if(!duplicatePlayer){
-                
                 res.writeHead(200, {'content-Type' : 'text/html'});
-                res.end(index);
+                res.end(index.replace("ake8rjhs94ydkjs8",email));
             }
         });
     }
@@ -849,6 +854,10 @@ var app = http.createServer(function(req, res) {
         res.end(exitPage);
     }
     else if(action == '/'){
+
+        //var exitPage = fs.readFileSync('./exitPage.html');
+        //res.writeHead(200, {'content-Type' : 'text/html'});
+        //res.end(exitPage);
         // console.log("REQUEST: %j",request);
         // console.log("USER: "+request.query.email);
 
@@ -891,12 +900,12 @@ var app = http.createServer(function(req, res) {
     }
 }), io = sio.listen(app);
 
-app.listen(3000);
+app.listen(8080);
 io.set('log level',1); //dont log so much debugging stuff
 
 io.sockets.on('connection', function(socket) {
 
-    console.log("QUERY: "+socket.manager.handshaken[socket.id].query.email);
+    //console.log("QUERY: "+socket.manager.handshaken[socket.id].query.email);
 
     //TODO replace coolguy9 with data supplied by the lobby team
     var id = socket.manager.handshaken[socket.id].query.email; //get id from client

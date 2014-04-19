@@ -1,4 +1,6 @@
 
+console.log("EMAIL: "+playerEmail);
+
 function getUrlParameters(parameter, staticURL, decode){
    /*
     Function: getUrlParameters
@@ -25,14 +27,15 @@ function getUrlParameters(parameter, staticURL, decode){
 }
 
 var game = new Object();
-var email = "";
-try{
-    email = getUrlParameters("email","",true);
-}
-catch(e){
-    console.log("ERROR OCCURED");
-    game['accountExists'] = false;
-}
+//var email = "";
+//try{
+    email = playerEmail;
+//}
+//catch(e){
+//    console.log("ERROR OCCURED");
+//    game['accountExists'] = false;
+//}
+game['accountExists'] = true;
 
 
 //Audio files
