@@ -623,7 +623,7 @@ $(function(){
 
     drawWagers = function(){
         ctx.fillStyle = "#000000";
-        ctx.font = '15pt Calibri';
+        ctx.font = '20pt Calibri';
         if(game.state == "betting" && (game.seat != game.banker) ){
             ctx.fillText("$ "+game.bet,betLockButtonInfo[0]+20,betLockButtonInfo[1]+35);
            
@@ -639,11 +639,11 @@ $(function(){
 
     drawWallets = function(){
         ctx.fillStyle = "#000000";
-        ctx.font = '15pt Calibri';
+        ctx.font = '20pt Calibri';
         if(game.seatsWallets !== null){
             for(var i = 0; i < game.seatsWallets.length; i++){
                 if(game.seatsWallets[i] !== null){
-                    ctx.fillText("$"+game.seatsWallets[i],seatTileLocations[i][2][0],seatTileLocations[i][2][1]-10);
+                    ctx.fillText("$"+game.seatsWallets[i].toFixed(0),seatTileLocations[i][2][0],seatTileLocations[i][2][1]-10);
                 }
             }
         }
@@ -706,7 +706,7 @@ $(function(){
         }
 
         ctx.fillStyle = "#000000";
-        ctx.font = '15pt Calibri';
+        ctx.font = '20pt Calibri';
         ctx.fillText(t,1000,50);
         
     }
@@ -745,7 +745,7 @@ $(function(){
             }
 
             ctx.fillStyle = "#000000";
-            ctx.font = '15pt Calibri';
+            ctx.font = '20pt Calibri';
             ctx.fillText(text,seatTileLocations[game.seat][1][0],seatTileLocations[game.seat][1][1]+tileHeight*tileScale+30);
         }
 
@@ -784,7 +784,7 @@ $(function(){
                         text+=getNonPairValue(other[0],other[1]);
                     }
                     ctx.fillStyle = "#000000";
-                    ctx.font = '15pt Calibri';
+                    ctx.font = '20pt Calibri';
                     ctx.fillText(text,seatTileLocations[i][1][0],seatTileLocations[i][1][1]+tileHeight*tileScale+30);
                 }
             }
@@ -825,7 +825,7 @@ $(function(){
             }
 
             ctx.fillStyle = "#000000";
-            ctx.font = '15pt Calibri';
+            ctx.font = '20pt Calibri';
             ctx.fillText(text,dealerTileLocations[3][0],dealerTileLocations[3][1]+tileHeight*tileScale+30);
         }
     }
@@ -896,8 +896,8 @@ $(function(){
             	drawSelectionLockButtons();
 				}
             ctx.fillStyle = "#000000";
-            ctx.font = '15pt Calibri';
-            ctx.fillText("Wallet: "+game.wallet,0,c.height);
+            ctx.font = '20pt Calibri';
+            ctx.fillText("Wallet: "+game.wallet.toFixed(0),10,c.height-20);
 
            
 
