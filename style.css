@@ -18,7 +18,6 @@ body {
 
 #topbar {
 	background-color:#400000;
-	min-height: 8%;
 	font-size: 25;
 	color: #FFFFFF;
 }
@@ -34,15 +33,12 @@ body {
 	min-height: 50%;
 }
 
-#messages {
-	height: 50%;
+#chat{
 	border:1px solid #ccc;
-	font:16px/26px Georgia, Garamond, Serif;
-	overflow:auto;
+	width: 100%;
 	max-width:100%;
 	margin-left: 10px;
-	margin-right: 10px;
-
+	margin-right: 10px;	
 }
 
 #gameInformation {
