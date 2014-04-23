@@ -6,6 +6,7 @@
     <script src="/howler.min.js"></script>
     <!-- <audio id="betUp" src="/sound/betUp.wav"></audio> -->
 	<link rel="stylesheet" type="text/css" href="style.css">
+  
   </head>
 
   <title>Pai Gow</title>
@@ -22,6 +23,10 @@
 	  <div id="leftbar">
       <a href="./InfoPage.html" onclick="window.open(this.href, 'mywin',
 'left=20,top=20,width=500,height=500,toolbar=1,resizable=0'); return false;" >Click here for Pai Gow Info</a>
+    <div>
+      <input type="button" id="exitButton" value="Exit at end of round" class="off" onclick="toggleState(this)"/>
+    </div>
+</div>
     </div>
 	  <div id="gamewindow">
         <canvas id="game"></canvas>

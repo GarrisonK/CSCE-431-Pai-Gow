@@ -27,6 +27,21 @@ function getUrlParameters(parameter, staticURL, decode){
 }
 
 var game = new Object();
+
+// Used for the exit button
+function toggleState(item){
+      if(item.className == "on"){
+        item.className="off";
+        item.value = "Exit at end of round";
+        game.exitOnRoundEnd = false;
+      }
+      else{
+        item.className="on";
+        game.exitOnRoundEnd = true;
+        item.value = "Keep playing";
+      }
+    drawPlayerInformation();
+    }
 //var email = "";
 //try{
     email = playerEmail;
@@ -505,7 +520,12 @@ $(function(){
     
     drawPlayerInformation = function(){
         //places the player name, xp, wallet, level in the top bar of the page
-        $("#topbar span").text(""+game.firstname+" "+game.lastname+",   Level: "+game.level+" ("+game.experience+" experience)" + "    $"+game.wallet.toFixed(0));
+        if(game.exitOnRoundEnd){
+            $("#topbar span").text(""+game.firstname+" "+game.lastname+",   Level: "+game.level+" ("+game.experience+" experience)" + "    $"+game.wallet.toFixed(0)+"      You will be removed from the table at the end of the round");    
+        }
+        else{
+            $("#topbar span").text(""+game.firstname+" "+game.lastname+",   Level: "+game.level+" ("+game.experience+" experience)" + "    $"+game.wallet.toFixed(0));
+        }
     }
 
     drawTile = function(id,x,y){
@@ -1090,6 +1110,7 @@ $(function(){   //document is ready
         }
         if(state == 'endgame'){
             resetGameInfo();
+            console.log("EXIT: "+game.exitOnRoundEnd);
             if(game.exitOnRoundEnd){
                 socket.disconnect();
                 window.location.replace("./exitPage.html");
@@ -1367,15 +1388,15 @@ $(function(){   //document is ready
         if(x>exitButtonInfo[0] && x<exitButtonInfo[0]+exitButtonInfo[2] && y>exitButtonInfo[1] && y<exitButtonInfo[1]+exitButtonInfo[3]){
             console.log("exit button clicked");
            
-	              clicked.play();
+	           //    clicked.play();
 	          
-            if(game.exitOnRoundEnd === true){
-                game.exitOnRoundEnd = false;
-            }
-            else{
-                game.exitOnRoundEnd = true;
-                alert("You will be removed from the table at the end of the round");
-            }
+            // if(game.exitOnRoundEnd === true){
+            //     game.exitOnRoundEnd = false;
+            // }
+            // else{
+            //     game.exitOnRoundEnd = true;
+            //     alert("You will be removed from the table at the end of the round");
+            // }
             // $("#messages").prepend("<li>Exit at end of round: "+game.exitOnRoundEnd+"</li>");
         }
     });
