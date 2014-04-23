@@ -1210,7 +1210,7 @@ $(function(){   //document is ready
     });
     socket.on('table removed',function(){
         game.exit = true;
-        window.location.replace("./exitPage.html");
+        window.location.replace("./destroyedTablePage.html");
     });
 
     setInterval(function(){
@@ -1367,7 +1367,6 @@ $(function(){   //document is ready
         if(x>exitButtonInfo[0] && x<exitButtonInfo[0]+exitButtonInfo[2] && y>exitButtonInfo[1] && y<exitButtonInfo[1]+exitButtonInfo[3]){
             console.log("exit button clicked");
            
-               
 	              clicked.play();
 	          
             if(game.exitOnRoundEnd === true){
@@ -1375,6 +1374,7 @@ $(function(){   //document is ready
             }
             else{
                 game.exitOnRoundEnd = true;
+                alert("You will be removed from the table at the end of the round");
             }
             // $("#messages").prepend("<li>Exit at end of round: "+game.exitOnRoundEnd+"</li>");
         }

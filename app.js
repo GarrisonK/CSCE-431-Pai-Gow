@@ -858,6 +858,11 @@ var app = http.createServer(function(req, res) {
         res.writeHead(200, {'content-Type' : 'text/html'});
         res.end(infoPage);   
     }
+    else if(action == '/destroyedTablePage.html'){
+         var destroyedPage = fs.readFileSync('./destroyedTablePage.html');
+            res.writeHead(200, {'content-Type' : 'text/html'});
+            res.end(destroyedPage);
+    }
     else if(action == '/'){
 
         //var exitPage = fs.readFileSync('./exitPage.html');
