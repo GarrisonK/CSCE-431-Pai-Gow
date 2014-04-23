@@ -505,7 +505,7 @@ $(function(){
     
     drawPlayerInformation = function(){
         //places the player name, xp, wallet, level in the top bar of the page
-        $("#topbar span").text(""+game.firstname+" "+game.lastname+",   Level: "+game.level+" ("+game.experience+" experience)");
+        $("#topbar span").text(""+game.firstname+" "+game.lastname+",   Level: "+game.level+" ("+game.experience+" experience)" + "    $"+game.wallet.toFixed(0));
     }
 
     drawTile = function(id,x,y){

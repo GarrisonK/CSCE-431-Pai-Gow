@@ -853,6 +853,11 @@ var app = http.createServer(function(req, res) {
         res.writeHead(200, {'content-Type' : 'text/html'});
         res.end(exitPage);
     }
+    else if(action == '/InfoPage.html'){
+         var infoPage = fs.readFileSync('./InfoPage.html');
+        res.writeHead(200, {'content-Type' : 'text/html'});
+        res.end(infoPage);   
+    }
     else if(action == '/'){
 
         //var exitPage = fs.readFileSync('./exitPage.html');
