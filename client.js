@@ -849,12 +849,6 @@ $(function(){
             ctx.fillText(text,dealerTileLocations[3][0],dealerTileLocations[3][1]+tileHeight*tileScale+30);
         }
     }
-
-    drawExitButton = function(){
-        ctx.fillStyle = "#000000";
-        ctx.drawImage(buttonImage,exitButtonInfo[4],exitButtonInfo[5],exitButtonInfo[2],exitButtonInfo[3],exitButtonInfo[0],exitButtonInfo[1],exitButtonInfo[2],exitButtonInfo[3]);
-       
-    }
     
     drawTimerBar= function(){ 
     
@@ -954,7 +948,6 @@ $(function(){
                 ctx.fillText("Waiting for start of next round",450,350);
             }
     		   drawMuteButton();
-            drawExitButton();
         }
     }
 
@@ -1382,22 +1375,6 @@ $(function(){   //document is ready
                Howler.unmute();
 	             clicked.play();
         		}
-        }
-
-        //Exit button
-        if(x>exitButtonInfo[0] && x<exitButtonInfo[0]+exitButtonInfo[2] && y>exitButtonInfo[1] && y<exitButtonInfo[1]+exitButtonInfo[3]){
-            console.log("exit button clicked");
-           
-	           //    clicked.play();
-	          
-            // if(game.exitOnRoundEnd === true){
-            //     game.exitOnRoundEnd = false;
-            // }
-            // else{
-            //     game.exitOnRoundEnd = true;
-            //     alert("You will be removed from the table at the end of the round");
-            // }
-            // $("#messages").prepend("<li>Exit at end of round: "+game.exitOnRoundEnd+"</li>");
         }
     });
 });
