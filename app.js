@@ -1057,7 +1057,8 @@ io.sockets.on('connection', function(socket) {
             if(tableId !== -1){
                 console.log("disconnect on table: "+tableId);
                 console.log("state: "+tables[tableId].state);
-                if(tables[tableId].state === "betting" || tables[tableId].state === "dealing" || tables[tableId].state === "tile reveal" || tables[tableId].state == "pair selection"){
+
+                if((tables[tableId].state === "betting" || tables[tableId].state === "dealing" || tables[tableId].state === "tile reveal" || tables[tableId].state == "pair selection") && tables[tableId].activeSeats[player.seat] === true){
                     //Destroy this table
                     console.log("Destroy this table");
                     for(j = 0; j < tables[tableId].seats.length; j++){
